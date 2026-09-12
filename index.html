@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HALO 2.0 — Contextual Email Trust &amp; Forensic Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#e8001d;
+    --accent-dim:#8f0012;
+    --bg-void:#040a12;
+    --bg-frame:#091326;
+    --panel:#f5f3ee;
+    --rule:#d0ccc4;
+    --cyan:#00f0ff;
+    --cyan-bright:#00d2be;
+    --ink:#151312;
+    --ink-soft:#4b4740;
+    --safe:#1f8f4e;
+    --warn:#c47a00;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg-void);
+    color:var(--ink);
+    font-family:'VT323',monospace;
+    min-height:100vh;
+    padding:18px;
+  }
+  .hdr{font-family:'Press Start 2P',monospace;}
+  ::-webkit-scrollbar{width:10px;height:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg-frame);}
+  ::-webkit-scrollbar-thumb{background:var(--accent);border:2px solid var(--bg-void);}
+  button{font-family:inherit;}
+  :focus-visible{outline:3px solid var(--cyan);outline-offset:1px;}
+
+  .chassis{
+    background:var(--bg-frame);
+    border:5px solid var(--rule);
+    box-shadow: 0 0 0 3px var(--bg-void), 0 0 40px rgba(232,0,29,0.15);
+    padding:14px;
+    max-width:1500px;
+    margin:0 auto;
+  }
+
+  /* ---------- TICKER ---------- */
+  .ticker-bar{background:var(--bg-void);border:3px solid var(--cyan);overflow:hidden;white-space:nowrap;padding:6px 0;margin-bottom:10px;position:relative;}
+  .ticker-track{display:inline-block;padding-left:100%;animation:ticker-scroll 32s linear infinite;color:var(--cyan);font-size:18px;letter-spacing:1px;}
+  .ticker-track span{margin-right:60px;}
+  .ticker-track span.hot{color:var(--accent);}
+  @keyframes ticker-scroll{0%{transform:translateX(0);}100%{transform:translateX(-100%);}}
+
+  /* ---------- NAV SHELL ---------- */
+  .nav-shell{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:10px 4px 16px;}
+  .badge{background:linear-gradient(180deg,#151d33,#0d1526);border:4px solid var(--accent);box-shadow:0 0 0 2px var(--bg-void), inset 0 0 0 2px rgba(0,210,190,0.35);padding:9px 20px;color:var(--cyan);font-family:'Press Start 2P',monospace;font-size:17px;letter-spacing:2px;position:relative;cursor:pointer;}
+  .badge::before,.badge::after{content:'';position:absolute;width:8px;height:8px;background:var(--accent);top:-4px;}
+  .badge::before{left:-4px;}
+  .badge::after{right:-4px;}
+  .badge .sub{font-family:'VT323',monospace;color:var(--rule);font-size:13px;letter-spacing:2px;margin-top:5px;text-align:center;}
+  .nav-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .status-pill{font-family:'VT323',monospace;font-size:15px;color:#9df7c4;border:2px solid var(--safe);padding:5px 10px;background:rgba(31,143,78,0.12);display:flex;align-items:center;gap:7px;}
+  .status-pill .dot{width:8px;height:8px;background:var(--safe);box-shadow:0 0 6px var(--safe);animation:blink 1.4s steps(2) infinite;}
+  @keyframes blink{50%{opacity:0.25;}}
+  .mode-switch{display:flex;border:2px solid var(--ink);}
+  .mode-btn{font-family:'Press Start 2P',monospace;font-size:10.5px;letter-spacing:1px;padding:9px 12px;background:var(--rule);color:var(--ink-soft);border:none;cursor:pointer;}
+  .mode-btn.active{background:var(--accent);color:#fff;}
+  .reset-btn{font-family:'VT323',monospace;font-size:15px;color:var(--rule);background:transparent;border:2px solid var(--rule);padding:6px 10px;cursor:pointer;}
+  .reset-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+
+  .subnav{display:flex;gap:0;border:2px solid var(--ink);margin-bottom:14px;flex-wrap:wrap;}
+  .subnav button{font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:1px;padding:11px 14px;background:var(--panel);color:var(--ink-soft);border:none;border-right:2px solid var(--ink);cursor:pointer;}
+  .subnav button:last-child{border-right:none;}
+  .subnav button.active{background:var(--ink);color:var(--cyan);}
+
+  /* ---------- PANEL / GENERIC ---------- */
+  .panel{background:var(--panel);border:4px solid var(--ink);box-shadow:5px 5px 0 var(--bg-void);padding:16px;margin-bottom:16px;}
+  .panel-title{font-family:'Press Start 2P',monospace;font-size:12px;color:var(--accent);border-bottom:3px solid var(--ink);padding-bottom:10px;margin-bottom:14px;letter-spacing:1px;}
+  label.field-label{display:block;font-family:'VT323',monospace;font-size:16px;color:var(--ink-soft);letter-spacing:1px;margin-bottom:6px;}
+  .pixel-input,.pixel-select{width:100%;background:#fff;border:3px solid var(--ink);box-shadow:3px 3px 0 var(--rule);padding:10px 8px;font-family:'VT323',monospace;font-size:18px;color:var(--ink);margin-bottom:14px;outline:none;}
+  .pixel-btn{font-family:'Press Start 2P',monospace;font-size:13px;letter-spacing:1px;color:#fff;background:var(--accent);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:14px 18px;cursor:pointer;transition:transform .04s linear;}
+  .pixel-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+  .pixel-btn:disabled{background:#9a9a9a;cursor:wait;}
+  .pixel-btn.secondary{background:var(--bg-frame);color:var(--cyan);font-size:11px;box-shadow:3px 3px 0 var(--ink);}
+  .pixel-btn.secondary:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink);}
+  .pixel-btn.safe{background:var(--safe);}
+  .pixel-btn.ghost{background:var(--panel);color:var(--ink);}
+  .pixel-btn.block{width:100%;text-align:center;}
+
+  .terminal{background:#06141b;border:3px solid var(--cyan);color:#7effc4;font-family:'VT323',monospace;font-size:16px;line-height:1.55;padding:12px;overflow-y:auto;white-space:pre-wrap;}
+  .terminal .err{color:var(--accent);}
+  .terminal .warn{color:#ffd24d;}
+  .terminal .ok{color:#7effc4;}
+  .cursor-blink{animation:blink 1s steps(2) infinite;}
+
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+  .metric-card{background:#fff;border:2px solid var(--ink);padding:10px 12px;box-shadow:3px 3px 0 var(--rule);}
+  .metric-card .m-label{font-size:14px;letter-spacing:1px;color:var(--ink-soft);}
+  .metric-card .m-value{font-size:20px;color:var(--ink);}
+  .flag-ok{color:var(--safe);}
+  .flag-bad{color:var(--accent);}
+  .flag-warn{color:var(--warn);}
+
+  .header-block{background:#06141b;color:#c9d3e0;font-family:'VT323',monospace;font-size:16px;padding:12px;line-height:1.6;border:2px solid var(--ink);white-space:pre-wrap;}
+  .hl-fail{color:var(--accent);font-weight:bold;}
+  .hl-pass{color:#7effc4;}
+
+  .tab-row{display:flex;border-bottom:3px solid var(--ink);flex-wrap:wrap;}
+  .tab-btn{font-family:'Press Start 2P',monospace;font-size:10.5px;letter-spacing:1px;padding:12px 14px;background:var(--rule);color:var(--ink-soft);border:none;border-right:3px solid var(--ink);cursor:pointer;}
+  .tab-btn.active{background:var(--panel);color:var(--accent);}
+  .tab-content{padding:16px 4px;display:none;}
+  .tab-content.active{display:block;}
+
+  .footnote{text-align:center;color:var(--rule);font-size:14px;margin-top:12px;letter-spacing:1px;}
+
+  /* ---------- LANDING / CONNECT ---------- */
+  .connect-wrap{max-width:560px;margin:30px auto;text-align:center;}
+  .connect-wrap h1{font-family:'Press Start 2P',monospace;font-size:20px;color:var(--panel);letter-spacing:1px;margin-bottom:10px;}
+  .connect-wrap p{color:var(--rule);font-size:18px;margin-bottom:26px;}
+  .connect-card{background:var(--panel);border:4px solid var(--ink);box-shadow:6px 6px 0 var(--bg-void);padding:26px 22px;}
+  .connect-card h2{font-family:'Press Start 2P',monospace;font-size:14px;margin:0 0 18px;color:var(--ink);}
+  .provider-btn{width:100%;display:block;margin-bottom:12px;font-family:'VT323',monospace;font-size:19px;letter-spacing:1px;padding:14px;border:3px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;box-shadow:4px 4px 0 var(--ink);text-align:center;}
+  .provider-btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink);}
+  .connect-note{color:var(--ink-soft);font-size:14px;margin-top:14px;}
+
+  /* ---------- SCANNING ---------- */
+  .scan-wrap{max-width:640px;margin:26px auto;}
+  .scan-counter{font-family:'Press Start 2P',monospace;font-size:40px;color:var(--cyan);text-align:center;margin:8px 0 4px;}
+  .scan-counter-label{text-align:center;color:var(--rule);font-size:16px;letter-spacing:2px;margin-bottom:20px;}
+  .stage-list{list-style:none;margin:0;padding:0;}
+  .stage-list li{font-size:18px;color:var(--ink-soft);padding:8px 4px;opacity:0.35;display:flex;gap:10px;align-items:center;}
+  .stage-list li.done{opacity:1;color:var(--ink);}
+  .stage-list li .mark{width:18px;display:inline-block;color:var(--safe);font-family:'Press Start 2P',monospace;font-size:12px;}
+
+  /* ---------- SUMMARY ---------- */
+  .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media (max-width:760px){.summary-grid{grid-template-columns:1fr;}}
+  .summary-card{border:4px solid var(--ink);padding:20px;cursor:pointer;box-shadow:5px 5px 0 var(--bg-void);text-align:center;background:#fff;}
+  .summary-card .sc-num{font-family:'Press Start 2P',monospace;font-size:30px;}
+  .summary-card .sc-label{font-size:17px;color:var(--ink-soft);margin-top:8px;letter-spacing:1px;}
+  .summary-card.high{border-color:var(--accent);} .summary-card.high .sc-num{color:var(--accent);}
+  .summary-card.attn{border-color:var(--warn);} .summary-card.attn .sc-num{color:var(--warn);}
+  .summary-card.safe{border-color:var(--safe);} .summary-card.safe .sc-num{color:var(--safe);}
+
+  /* ---------- INBOX ---------- */
+  .inbox-row{display:flex;align-items:center;gap:12px;border:2px solid var(--ink);border-left-width:8px;background:#fff;padding:10px 12px;margin-bottom:8px;cursor:pointer;box-shadow:3px 3px 0 var(--rule);}
+  .inbox-row:hover{box-shadow:5px 5px 0 var(--rule);}
+  .inbox-row.high{border-left-color:var(--accent);}
+  .inbox-row.attention{border-left-color:var(--warn);}
+  .inbox-row.safe{border-left-color:var(--safe);}
+  .inbox-row .ir-main{flex:1;min-width:0;}
+  .inbox-row .ir-subject{font-size:18px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .inbox-row .ir-sender{font-size:14px;color:var(--ink-soft);}
+  .inbox-row .ir-date{font-size:13px;color:var(--ink-soft);white-space:nowrap;}
+  .badge-pill{font-family:'Press Start 2P',monospace;font-size:9px;letter-spacing:0.5px;padding:5px 7px;color:#fff;white-space:nowrap;}
+  .badge-pill.high{background:var(--accent);}
+  .badge-pill.attention{background:var(--warn);}
+  .badge-pill.safe{background:var(--safe);}
+  #inboxList{max-height:560px;overflow-y:auto;padding-right:4px;}
+
+  /* ---------- EMAIL DETAIL ---------- */
+  .verdict-block{border:4px solid var(--ink);padding:18px;margin-bottom:16px;box-shadow:5px 5px 0 var(--bg-void);}
+  .verdict-block.high{background:#fdeceb;}
+  .verdict-block.attention{background:#fff6e6;}
+  .verdict-block.safe{background:#eaf7ef;}
+  .verdict-headline{font-size:22px;color:var(--ink);margin:2px 0 10px;}
+  .verdict-badges{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .vbadge{font-family:'Press Start 2P',monospace;font-size:10px;padding:8px 10px;border:2px solid var(--ink);background:#fff;}
+  .why-list{list-style:none;margin:10px 0;padding:0;}
+  .why-list li{font-size:17px;padding:5px 0;}
+  .action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;}
+
+  .trust-gauge-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+  .gauge-readout{font-family:'Press Start 2P',monospace;font-size:26px;}
+  .gauge-cap{font-size:15px;color:var(--ink-soft);}
+
+  .baseline-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:520px){.baseline-grid{grid-template-columns:1fr;}}
+  .baseline-card{background:#fff;border:2px solid var(--ink);padding:10px 12px;box-shadow:3px 3px 0 var(--rule);}
+  .baseline-card .bl-label{font-size:14px;color:var(--ink-soft);}
+  .baseline-card .bl-row{display:flex;justify-content:space-between;font-size:17px;margin-top:4px;}
+
+  /* ---------- GRAPH ---------- */
+  .graph-shell{border:3px solid var(--ink);background:var(--bg-void);position:relative;padding:6px;}
+  #corrGraph{width:100%;height:auto;display:block;}
+  .graph-legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:14px;color:var(--ink-soft);}
+  .graph-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend-dot{width:10px;height:10px;display:inline-block;}
+
+  /* ---------- CAMPAIGNS ---------- */
+  .campaign-row{border:3px solid var(--ink);background:#fff;padding:14px 16px;margin-bottom:10px;cursor:pointer;box-shadow:4px 4px 0 var(--rule);}
+  .campaign-row h3{margin:0 0 6px;font-size:19px;color:var(--accent);}
+  .campaign-row .cr-stats{font-size:15px;color:var(--ink-soft);}
+  .timeline{list-style:none;margin:0;padding:0;}
+  .timeline li{border-left:3px solid var(--accent);padding:4px 0 10px 14px;font-size:16px;margin-left:4px;}
+
+  /* ---------- TOAST ---------- */
+  .toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:#9df7c4;border:2px solid var(--safe);padding:12px 18px;font-size:16px;z-index:999;box-shadow:4px 4px 0 var(--bg-void);display:none;max-width:320px;}
+  .toast.shown{display:block;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+</style>
+</head>
+<body>
+<div class="chassis">
+
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <div class="nav-shell">
+    <div class="badge" id="brandBadge">HALO
+      <div class="sub">contextual trust engine</div>
+    </div>
+    <div class="nav-right">
+      <div class="status-pill"><span class="dot"></span><span id="statusText">DEMO MODE — SYNTHETIC DATA</span></div>
+      <div class="mode-switch" id="navSwitch">
+        <button class="mode-btn active" data-nav="student">STUDENT</button>
+        <button class="mode-btn" data-nav="institution">INSTITUTION</button>
+      </div>
+      <button class="reset-btn" id="resetBtn">RESET DEMO</button>
+    </div>
+  </div>
+
+  <div id="subnavStudent" class="subnav"></div>
+  <div id="subnavInstitution" class="subnav" style="display:none;"></div>
+
+  <main id="screenRoot"></main>
+
+  <div class="footnote">HALO 2.0 — PROTOTYPE — synthetic demo data, scoring runs entirely in your browser.</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* HALO ENGINE */
+const HaloEngine = (() => {
+  const PROTECTED_BRANDS = ["paypal.com","google.com","microsoft.com","amazon.com","apple.com","linkedin.com"];
+  const KNOWN_GOOD_DOMAINS = new Set(["amityonline.edu","github.com","spotify.com","coursera.org","tech-insider-daily.com","zomato.com","linkedin.com","google.com","microsoft.com","swiggy.com"]);
+  const INFRA_TABLE = {
+    "185.220.101.47": { asn:"AS208843", org:"Offshore Hosting Solutions Ltd.", country:"DE", region:"Frankfurt", tag:"bulk-anonymous-hosting", risk:85, confidence:"Low" },
+    "191.101.203.19": { asn:"AS262954", org:"DataCenter Brasil Networks", country:"BR", region:"Sao Paulo", tag:"shared-vps", risk:65, confidence:"Medium" },
+    "103.87.44.212": { asn:"AS142804", org:"QuickServe Cloud Hosting Pvt Ltd", country:"IN", region:"Mumbai", tag:"shared-vps", risk:68, confidence:"Medium" },
+    "45.140.16.33": { asn:"AS210644", org:"AnonRelay Networks", country:"NL", region:"Amsterdam", tag:"bulk-anonymous-hosting", risk:80, confidence:"Low" },
+    "76.223.54.10": { asn:"AS16509", org:"Cloud hosting - newly provisioned", country:"SG", region:"Singapore", tag:"unestablished-cloud", risk:68, confidence:"Low" },
+    "142.250.80.46": { asn:"AS15169", org:"Google Cloud Platform (verified mail infra)", country:"US", region:"Mountain View", tag:"established-mail-provider", risk:3, confidence:"High" },
+    "103.21.58.10": { asn:"AS45528", org:"Amity Online Education Campus Network", country:"IN", region:"Noida", tag:"institutional-network", risk:2, confidence:"High" },
+    "13.107.6.156": { asn:"AS8075", org:"Microsoft Corporation (verified mail infra)", country:"US", region:"Redmond", tag:"established-mail-provider", risk:3, confidence:"High" }
+  };
+  const BASELINE = {
+    "recruiter@talent-acquisition-portal.example": { seenBefore:true, historicalCredentialRequests:0, historicalPaymentRequests:0, typicalRequestTypes:["internship information","interview schedule","offer letter"] },
+    "placements@amityonline.edu": { seenBefore:true, historicalCredentialRequests:0, historicalPaymentRequests:0, typicalRequestTypes:["interview schedule","document submission","offer letter"] },
+    "it-helpdesk@amityonline.edu": { seenBefore:true, historicalCredentialRequests:0, historicalPaymentRequests:0, typicalRequestTypes:["password reset","device registration"] },
+    "registrar@amityonline.edu": { seenBefore:true, historicalCredentialRequests:0, historicalPaymentRequests:0, typicalRequestTypes:["fee receipt","transcript request"] }
+  };
+  const URGENCY_WORDS = ["urgent","urgently","immediately","within 2 hours","within 24 hours","act now","asap","right away","final notice","last chance","expires today","hurry"];
+  const CREDENTIAL_WORDS = ["password","otp","verification code","login credentials","college account credentials","confirm your account","security code","account credentials"];
+  const PAYMENT_WORDS = ["verification fee","processing fee","registration fee","refundable fee","wire transfer","bank details","account number","pay ","payment of","gift card"];
+
+  function domainOf(addr){ const m=/@([a-zA-Z0-9.-]+)/.exec(addr||""); return m?m[1].toLowerCase():null; }
+  function unfoldHeaders(block){ const lines=block.split(/\r?\n/); const out=[]; for(const line of lines){ if(/^[ \t]/.test(line)&&out.length) out[out.length-1]+=" "+line.trim(); else if(line.trim()!=="") out.push(line); } return out; }
+  function getHeader(lines,name){ const re=new RegExp("^"+name+":\\s*(.*)$","i"); return lines.filter(l=>re.test(l)).map(l=>re.exec(l)[1]); }
+  function parseAuthResults(v){ if(!v) return {spf:"NOT PRESENT",dkim:"NOT PRESENT",dmarc:"NOT PRESENT",present:false}; const spf=/spf=(\w+)/i.exec(v),dkim=/dkim=(\w+)/i.exec(v),dmarc=/dmarc=(\w+)/i.exec(v); return {spf:spf?spf[1].toUpperCase():"NOT PRESENT",dkim:dkim?dkim[1].toUpperCase():"NOT PRESENT",dmarc:dmarc?dmarc[1].toUpperCase():"NOT PRESENT",present:true}; }
+  function extractOriginIP(received){ if(!received.length) return null; const earliest=received[received.length-1]; const m=/\[?(\d{1,3}(?:\.\d{1,3}){3})\]?/.exec(earliest); return m?m[1]:null; }
+  function parseEmailSource(raw){
+    const idx=raw.search(/\r?\n\r?\n/);
+    const headerBlock=idx===-1?raw:raw.slice(0,idx);
+    const body=idx===-1?"":raw.slice(idx).trim();
+    const headerLines=unfoldHeaders(headerBlock);
+    const from=(getHeader(headerLines,"From")[0]||"").trim();
+    const replyTo=(getHeader(headerLines,"Reply-To")[0]||"").trim();
+    const subject=(getHeader(headerLines,"Subject")[0]||"").trim();
+    const date=(getHeader(headerLines,"Date")[0]||"").trim();
+    const authRaw=getHeader(headerLines,"Authentication-Results")[0]||"";
+    const received=getHeader(headerLines,"Received");
+    const senderMatch=from.match(/<?([\w.+-]+@[\w.-]+)>?/);
+    return { raw, headerLines, body, from, replyTo, subject, date, senderAddr:senderMatch?senderMatch[1]:null,
+      fromDomain:domainOf(from), replyToDomain:domainOf(replyTo), auth:parseAuthResults(authRaw), originIP:extractOriginIP(received) };
+  }
+  function isHomographOf(domain){ if(!domain) return null; for(const brand of PROTECTED_BRANDS){ const name=brand.split(".")[0]; if(domain!==brand && domain.includes(name)) return brand; } return null; }
+
+  function scoreIdentity(parsed){
+    const spf=parsed.auth.spf, dkim=parsed.auth.dkim, dmarc=parsed.auth.dmarc;
+    let authPoints=0; const evidence=[];
+    if(spf==="PASS"){authPoints+=5;evidence.push("SPF: PASS");} else evidence.push("SPF: "+spf);
+    if(dkim==="PASS"){authPoints+=5;evidence.push("DKIM: PASS");} else evidence.push("DKIM: "+dkim);
+    if(dmarc==="PASS"){authPoints+=5;evidence.push("DMARC policy: PASS");} else evidence.push("DMARC policy: "+dmarc);
+    const lookalike=isHomographOf(parsed.fromDomain);
+    const known=KNOWN_GOOD_DOMAINS.has(parsed.fromDomain);
+    let domainRepPoints;
+    if(lookalike){domainRepPoints=0;evidence.push('Sending domain "'+parsed.fromDomain+'" resembles a protected brand ("'+lookalike+'") - likely lookalike/homograph');}
+    else if(known){domainRepPoints=10;evidence.push('Sending domain "'+parsed.fromDomain+'" has an established reputation with this institution');}
+    else {domainRepPoints=2;evidence.push('Sending domain "'+parsed.fromDomain+'" has no established history with this institution - first time seen');}
+    if(parsed.replyToDomain && parsed.fromDomain && parsed.replyToDomain!==parsed.fromDomain){ evidence.push("Reply-To domain ("+parsed.replyToDomain+") does not match From domain ("+parsed.fromDomain+")"); domainRepPoints=Math.max(0,domainRepPoints-2); }
+    let points=Math.min(25,authPoints+domainRepPoints);
+    if(lookalike) points=Math.min(points,5);
+    const allPass=spf==="PASS"&&dkim==="PASS"&&dmarc==="PASS";
+    let technicalLabel = lookalike?"LOW":(allPass?"HIGH":(authPoints>=5?"MEDIUM":"LOW"));
+    return {points,technicalLabel,evidence,domainKnown:known,lookalike};
+  }
+
+  function countMatches(text,words){ const l=text.toLowerCase(); return words.filter(w=>l.includes(w)); }
+
+  function scoreContent(parsed){
+    const text=(parsed.subject+"\n"+parsed.body);
+    const urgencyHits=countMatches(text,URGENCY_WORDS), credHits=countMatches(text,CREDENTIAL_WORDS), paymentHits=countMatches(text,PAYMENT_WORDS);
+    const genericGreeting=/dear (user|customer|valued|sir\/madam|candidate)/i.test(text) || /congratulations!\s*(you|your)/i.test(text);
+    const credential_request=credHits.length>0, payment_request=paymentHits.length>0;
+    const urgency = urgencyHits.length>=2?"HIGH":urgencyHits.length===1?"MEDIUM":"NONE";
+    const social_engineering_indicators = urgency!=="NONE" && (credential_request||payment_request);
+    let riskScore=0; const evidencePlain=[]; const evidenceTech=[];
+    if(urgency!=="NONE"){riskScore+=urgency==="HIGH"?25:14;evidencePlain.push("This message is pressuring you to act fast.");evidenceTech.push('urgency = '+urgency+' ("'+urgencyHits[0]+'")');}
+    if(credential_request){riskScore+=32;evidencePlain.push("It is asking for account credentials or a security code.");evidenceTech.push('credential_request = detected ("'+credHits[0]+'")');}
+    if(payment_request){riskScore+=32;evidencePlain.push("It is asking you to make a payment.");evidenceTech.push('payment_request = detected ("'+paymentHits[0].trim()+'")');}
+    if(genericGreeting){riskScore+=8;evidencePlain.push("Generic, non-personalised opening.");evidenceTech.push("generic_greeting = detected");}
+    if(social_engineering_indicators) evidenceTech.push("social_engineering_indicators = detected (urgency + sensitive request combined)");
+    riskScore=Math.min(100,riskScore);
+    if(!evidencePlain.length) evidencePlain.push("No pressure tactics or sensitive requests found in the wording.");
+    if(!evidenceTech.length) evidenceTech.push("credential_request = none, payment_request = none, urgency = none");
+    const points=Math.round(25*(1-riskScore/100));
+    return {points,riskScore,credential_request,payment_request,urgency,social_engineering_indicators,evidencePlain,evidenceTech};
+  }
+
+  function scoreBehaviour(parsed,content){
+    const sender=parsed.senderAddr||parsed.fromDomain;
+    const known=BASELINE[sender];
+    const currentCredential=content.credential_request?1:0, currentPayment=content.payment_request?1:0;
+    let riskScore,deviation; const evidencePlain=[]; let historicalCredentialRequests,historicalPaymentRequests;
+    if(known){
+      historicalCredentialRequests=known.historicalCredentialRequests; historicalPaymentRequests=known.historicalPaymentRequests;
+      const deviates = currentCredential>historicalCredentialRequests || currentPayment>historicalPaymentRequests;
+      if(deviates){ riskScore=78; deviation="HIGH"; evidencePlain.push("Normally, this sender does not ask for this. This message does."); }
+      else { riskScore=5; deviation="NONE"; evidencePlain.push("This is consistent with how this sender has messaged before."); }
+    } else {
+      historicalCredentialRequests=0; historicalPaymentRequests=0;
+      if(currentCredential||currentPayment){ riskScore=55; deviation="HIGH"; evidencePlain.push("This sender has no prior history, and is already asking for something sensitive."); }
+      else { riskScore=15; deviation="LOW"; evidencePlain.push("First message from this sender - nothing sensitive requested yet."); }
+    }
+    const points=Math.round(25*(1-riskScore/100));
+    return {points,riskScore,deviation,historicalCredentialRequests,currentCredential,historicalPaymentRequests,currentPayment,seenBefore:!!known,evidencePlain};
+  }
+
+  function scoreInfrastructure(parsed){
+    if(!parsed.originIP) return {points:18,riskScore:20,ip:null,evidencePlain:["No routable origin found - treated as neutral."],meta:null};
+    const entry=INFRA_TABLE[parsed.originIP];
+    if(!entry) return {points:15,riskScore:35,ip:parsed.originIP,evidencePlain:["This infrastructure hasn't been seen before - nothing alarming, but nothing established either."],meta:null};
+    const points=Math.round(25*(1-entry.risk/100));
+    const evidencePlain = entry.risk>=40
+      ? ["The message is coming from infrastructure we don't normally associate with this sender."]
+      : ["The sending infrastructure is well-established and consistent with legitimate mail."];
+    return {points,riskScore:entry.risk,ip:parsed.originIP,evidencePlain,meta:entry};
+  }
+
+  function fuse(parsed){
+    const identity=scoreIdentity(parsed), content=scoreContent(parsed), behaviour=scoreBehaviour(parsed,content), infra=scoreInfrastructure(parsed);
+    const trustScoreRaw=Math.max(0,Math.min(100,identity.points+content.points+behaviour.points+infra.points));
+    const contentFlagged=content.riskScore>=40, behaviourFlagged=behaviour.deviation==="HIGH", infraFlagged=infra.riskScore>=40, identityFlagged=identity.technicalLabel!=="HIGH";
+    const overrideApplied = contentFlagged && behaviourFlagged;
+    const trustScore = overrideApplied ? Math.min(trustScoreRaw,35) : trustScoreRaw;
+    const contextAvgRisk=(content.riskScore+behaviour.riskScore+infra.riskScore)/3;
+    const contextualLabel = contextAvgRisk>=55?"LOW":contextAvgRisk>=25?"MEDIUM":"HIGH";
+    let bucket = trustScore>=70?"safe":trustScore>=40?"attention":"high-risk";
+    let headline;
+    if(bucket==="safe") headline="This looks safe to act on.";
+    else if(identity.technicalLabel==="HIGH" && contextualLabel==="LOW") headline="This sender appears genuine, but this message is asking for something unusual.";
+    else if(bucket==="high-risk") headline="This message may not be safe.";
+    else headline="Something about this message is unusual - worth a second look.";
+    const whyReasons=[];
+    if(content.credential_request) whyReasons.push("It asks for sensitive information.");
+    if(content.payment_request) whyReasons.push("It asks you to make a payment.");
+    if(content.urgency!=="NONE") whyReasons.push("It creates unusual urgency.");
+    if(behaviour.deviation==="HIGH") whyReasons.push("This is different from the sender's usual behaviour.");
+    if(infra.riskScore>=40) whyReasons.push("The message is coming from infrastructure we don't normally associate with this sender.");
+    if(identity.lookalike) whyReasons.push("The sending domain looks like it's imitating a well-known brand.");
+    const recommendedActions = bucket==="safe" ? [] : bucket==="high-risk"
+      ? ["Don't click, pay, or share your credentials.","Verify the opportunity directly with the organisation.","Report to your T&P Cell."]
+      : ["Double-check before you act on this.","Verify the sender through another channel if it asks for anything sensitive."];
+    return {parsed,identity,content,behaviour,infra,trustScore,technicalLegitimacy:identity.technicalLabel,contextualLegitimacy:contextualLabel,bucket,headline,whyReasons,recommendedActions,flaggedCount:[identityFlagged,contentFlagged,behaviourFlagged,infraFlagged].filter(Boolean).length,overrideApplied};
+  }
+
+  return {parseEmailSource,scoreIdentity,scoreContent,scoreBehaviour,scoreInfrastructure,fuse,INFRA_TABLE,BASELINE,KNOWN_GOOD_DOMAINS};
+})();
+
+/* DATASET */
+const RAW = {
+killer:`From: "Talent Acquisition Team" <recruiter@talent-acquisition-portal.example>
+Reply-To: recruiter@talent-acquisition-portal.example
+Subject: Urgent - Final Internship Selection
+Date: Thu, 10 Sep 2026 21:14:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Thu, 10 Sep 2026 21:14:05 +0000
+Received: from mail.talent-acquisition-portal.example (76.223.54.10) by mx.targetdomain.com; Thu, 10 Sep 2026 21:14:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=talent-acquisition-portal.example; dkim=pass header.d=talent-acquisition-portal.example; dmarc=pass (p=reject) header.from=talent-acquisition-portal.example
+
+Congratulations! You have been shortlisted for our internship program.
+
+To complete your verification, please send your college account credentials and pay a refundable verification fee of Rs. 2,500 within the next 2 hours. This is urgent - act now to avoid losing your seat.
+
+Thank you,
+Talent Acquisition Team`,
+
+campaign_variant2:`From: "Talent Acquisition Team" <recruiter@talent-acquisition-portal.example>
+Reply-To: recruiter@talent-acquisition-portal.example
+Subject: Final Reminder - Complete Your Internship Verification Today
+Date: Fri, 11 Sep 2026 08:40:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Fri, 11 Sep 2026 08:40:05 +0000
+Received: from mail.talent-acquisition-portal.example (76.223.54.10) by mx.targetdomain.com; Fri, 11 Sep 2026 08:40:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=talent-acquisition-portal.example; dkim=pass header.d=talent-acquisition-portal.example; dmarc=pass (p=reject) header.from=talent-acquisition-portal.example
+
+This is urgent - your internship seat is about to be released. Send your college account credentials and complete the refundable verification fee immediately to confirm your place.
+
+Talent Acquisition Team`,
+
+scholarship_scam:`From: "Scholarship Board" <awards@scholarship-disbursement-cell.net>
+Reply-To: claims@scholarship-disbursement-cell.net
+Subject: Final Notice - Your scholarship award is expiring
+Date: Wed, 09 Sep 2026 06:15:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Wed, 09 Sep 2026 06:15:05 +0000
+Received: from relay19.freehost-cluster.net (45.140.16.33) by mx.targetdomain.com; Wed, 09 Sep 2026 06:15:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=fail smtp.mailfrom=scholarship-disbursement-cell.net; dkim=fail header.d=scholarship-disbursement-cell.net; dmarc=fail (p=reject) header.from=scholarship-disbursement-cell.net
+
+Dear candidate, you have been awarded a merit scholarship. Act now - pay the processing fee of Rs. 1,200 within 24 hours or your award will be forfeited. Reply with your bank details to receive the transfer.`,
+
+otp_scam:`From: "Account Security" <security-update@accounts-google.co.in>
+Reply-To: security-update@accounts-google.co.in
+Subject: Your account was accessed from a new device - verify now
+Date: Wed, 09 Sep 2026 09:04:13 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Wed, 09 Sep 2026 09:04:13 +0000
+Received: from server212.quickservehost.in (103.87.44.212) by mx.targetdomain.com; Wed, 09 Sep 2026 09:04:11 +0000
+Authentication-Results: mx.targetdomain.com; spf=fail smtp.mailfrom=accounts-google.co.in; dkim=fail header.d=accounts-google.co.in; dmarc=fail (p=reject) header.from=accounts-google.co.in
+
+Your account was accessed from a new device. Verify now by entering your login credentials and the security code sent to your phone to confirm your account.`,
+
+helpdesk_unusual:`From: "IT Helpdesk" <it-helpdesk@amityonline.edu>
+Reply-To: it-helpdesk@amityonline.edu
+Subject: Mandatory system migration - confirm your password today
+Date: Thu, 10 Sep 2026 15:10:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Thu, 10 Sep 2026 15:10:05 +0000
+Received: from mail.amityonline.edu (103.21.58.10) by mx.targetdomain.com; Thu, 10 Sep 2026 15:10:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=amityonline.edu; dkim=pass header.d=amityonline.edu; dmarc=pass (p=reject) header.from=amityonline.edu
+
+We're migrating to a new system today. Reply with your current password immediately so we can migrate your account before the deadline tonight.`,
+
+interview_reschedule:`From: "HR Coordination" <hr.coordination@swiftcareers-connect.com>
+Reply-To: hr.coordination@swiftcareers-connect.com
+Subject: Action needed - confirm your new interview slot
+Date: Tue, 08 Sep 2026 12:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Tue, 08 Sep 2026 12:00:05 +0000
+Received: from mail.swiftcareers-connect.com (76.223.54.10) by mx.targetdomain.com; Tue, 08 Sep 2026 12:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=swiftcareers-connect.com; dkim=pass header.d=swiftcareers-connect.com; dmarc=pass (p=reject) header.from=swiftcareers-connect.com
+
+Hi, your interview slot has changed. Please confirm your new slot as soon as possible - act now, slots are filling fast.
+https://swiftcareers-connect.com/confirm-slot`,
+
+subscription_confirm:`From: "CareerBoost Weekly" <no-reply@careerboost-alerts.info>
+Reply-To: no-reply@careerboost-alerts.info
+Subject: Confirm your subscription to keep receiving job alerts
+Date: Mon, 07 Sep 2026 14:22:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Mon, 07 Sep 2026 14:22:05 +0000
+Received: from mail.careerboost-alerts.info (76.223.54.10) by mx.targetdomain.com; Mon, 07 Sep 2026 14:22:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=careerboost-alerts.info; dkim=pass header.d=careerboost-alerts.info; dmarc=pass (p=reject) header.from=careerboost-alerts.info
+
+Act now to confirm your subscription and keep receiving weekly job alerts tailored to your profile.
+https://careerboost-alerts.info/confirm`,
+
+fee_reminder_unusual_link:`From: "Accounts Office" <accounts@amityonline-payments.net>
+Reply-To: accounts@amityonline-payments.net
+Subject: Pending fee reminder - please review
+Date: Sat, 05 Sep 2026 09:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Sat, 05 Sep 2026 09:00:05 +0000
+Received: from mail.amityonline-payments.net (191.101.203.19) by mx.targetdomain.com; Sat, 05 Sep 2026 09:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=amityonline-payments.net; dkim=pass header.d=amityonline-payments.net; dmarc=pass (p=reject) header.from=amityonline-payments.net
+
+This is a reminder that your semester fee balance is pending. Please review and pay at your earliest convenience via the linked portal.
+https://amityonline-payments.net/pay`,
+
+recruiter_pushy:`From: "Recruiter - GrowthStart" <outreach@growthstart-careers.io>
+Reply-To: outreach@growthstart-careers.io
+Subject: Only a few slots left - apply now
+Date: Sun, 06 Sep 2026 19:30:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Sun, 06 Sep 2026 19:30:05 +0000
+Received: from mail.growthstart-careers.io (76.223.54.10) by mx.targetdomain.com; Sun, 06 Sep 2026 19:30:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=growthstart-careers.io; dkim=pass header.d=growthstart-careers.io; dmarc=pass (p=reject) header.from=growthstart-careers.io
+
+Hi, we loved your profile. Only a few internship slots are left this cycle - apply now, hurry before applications close tonight.
+https://growthstart-careers.io/apply`,
+
+marketplace_listing:`From: "Campus Marketplace" <listings@campus-marketplace-hub.com>
+Reply-To: seller2291@campus-marketplace-hub.com
+Subject: Textbook bundle available - only 1 left, reply fast
+Date: Sun, 06 Sep 2026 21:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Sun, 06 Sep 2026 21:00:05 +0000
+Received: from mail.campus-marketplace-hub.com (76.223.54.10) by mx.targetdomain.com; Sun, 06 Sep 2026 21:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=campus-marketplace-hub.com; dkim=pass header.d=campus-marketplace-hub.com; dmarc=pass (p=reject) header.from=campus-marketplace-hub.com
+
+Hey, saw you were looking for second-hand textbooks. I have a bundle available but only 1 left - reply fast, act now, and I'll hold it for you.`,
+
+prior_baseline:`From: "Talent Acquisition Team" <recruiter@talent-acquisition-portal.example>
+Reply-To: recruiter@talent-acquisition-portal.example
+Subject: Internship program - information and next steps
+Date: Mon, 07 Sep 2026 10:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Mon, 07 Sep 2026 10:00:05 +0000
+Received: from mail.talent-acquisition-portal.example (76.223.54.10) by mx.targetdomain.com; Mon, 07 Sep 2026 10:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=talent-acquisition-portal.example; dkim=pass header.d=talent-acquisition-portal.example; dmarc=pass (p=reject) header.from=talent-acquisition-portal.example
+
+Hi, thanks for applying to our internship program. We'll share interview schedules and next steps here over the coming weeks. No action needed from you right now.
+
+Talent Acquisition Team`,
+
+registrar_receipt:`From: "Registrar's Office" <registrar@amityonline.edu>
+Reply-To: registrar@amityonline.edu
+Subject: Fee receipt available for download
+Date: Fri, 04 Sep 2026 11:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Fri, 04 Sep 2026 11:00:05 +0000
+Received: from mail.amityonline.edu (103.21.58.10) by mx.targetdomain.com; Fri, 04 Sep 2026 11:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=amityonline.edu; dkim=pass header.d=amityonline.edu; dmarc=pass (p=reject) header.from=amityonline.edu
+
+Your semester fee receipt is now available for download from the student portal. No action is required.`,
+
+professor_reminder:`From: "Dr. Nandini Rao" <nandini.rao@amityonline.edu>
+Reply-To: nandini.rao@amityonline.edu
+Subject: Reminder - assignment due Friday
+Date: Wed, 09 Sep 2026 08:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Wed, 09 Sep 2026 08:00:05 +0000
+Received: from mail.amityonline.edu (103.21.58.10) by mx.targetdomain.com; Wed, 09 Sep 2026 08:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=amityonline.edu; dkim=pass header.d=amityonline.edu; dmarc=pass (p=reject) header.from=amityonline.edu
+
+Reminder that your assignment is due this Friday by 11:59pm. Submit via the LMS as usual.`,
+
+food_delivery:`From: "Swiggy" <noreply@swiggy.com>
+Reply-To: noreply@swiggy.com
+Subject: Your order has been delivered
+Date: Thu, 10 Sep 2026 20:05:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Thu, 10 Sep 2026 20:05:05 +0000
+Received: from mail.swiggy.com (142.250.80.46) by mx.targetdomain.com; Thu, 10 Sep 2026 20:05:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=swiggy.com; dkim=pass header.d=swiggy.com; dmarc=pass (p=reject) header.from=swiggy.com
+
+Your order from Campus Cafe has been delivered. Enjoy your meal!`,
+
+github_notification:`From: "GitHub" <notifications@github.com>
+Reply-To: notifications@github.com
+Subject: New comment on your pull request
+Date: Thu, 10 Sep 2026 16:45:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Thu, 10 Sep 2026 16:45:05 +0000
+Received: from mail.github.com (142.250.80.46) by mx.targetdomain.com; Thu, 10 Sep 2026 16:45:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=github.com; dkim=pass header.d=github.com; dmarc=pass (p=reject) header.from=github.com
+
+Someone commented on your pull request in the class project repository. View it on GitHub.`,
+
+newsletter:`From: "Tech Insider Daily" <newsletter@tech-insider-daily.com>
+Reply-To: newsletter@tech-insider-daily.com
+Subject: Your Monday briefing: 5 stories in AI infrastructure
+Date: Mon, 07 Sep 2026 07:00:03 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Mon, 07 Sep 2026 07:00:05 +0000
+Received: from mail-relay-046.tech-insider-daily.com (142.250.80.46) by mx.targetdomain.com; Mon, 07 Sep 2026 07:00:03 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=tech-insider-daily.com; dkim=pass header.d=tech-insider-daily.com; dmarc=pass (p=reject) header.from=tech-insider-daily.com
+
+Here are five stories in AI infrastructure this week. Read on for our full roundup.`,
+
+linkedin_notification:`From: "LinkedIn" <notifications@linkedin.com>
+Reply-To: notifications@linkedin.com
+Subject: You have 3 new profile views
+Date: Wed, 09 Sep 2026 12:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Wed, 09 Sep 2026 12:00:05 +0000
+Received: from mail.linkedin.com (142.250.80.46) by mx.targetdomain.com; Wed, 09 Sep 2026 12:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=linkedin.com; dkim=pass header.d=linkedin.com; dmarc=pass (p=reject) header.from=linkedin.com
+
+Your profile has been viewed 3 times this week. See who's viewed your profile.`,
+
+coursera_promo:`From: "Coursera" <no-reply@coursera.org>
+Reply-To: no-reply@coursera.org
+Subject: New courses recommended for you
+Date: Tue, 08 Sep 2026 09:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Tue, 08 Sep 2026 09:00:05 +0000
+Received: from mail.coursera.org (142.250.80.46) by mx.targetdomain.com; Tue, 08 Sep 2026 09:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=coursera.org; dkim=pass header.d=coursera.org; dmarc=pass (p=reject) header.from=coursera.org
+
+Based on your interests, here are a few new courses you might like.`
+};
+
+const CAMPAIGN_RAW = {
+priya_1:{student:"Priya Nair",dept:"CSE",raw:`From: "Talent Acquisition Team" <recruiter@swift-internship-verify.net>
+Subject: Urgent - Final Internship Selection
+Date: Thu, 10 Sep 2026 19:02:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Thu, 10 Sep 2026 19:02:05 +0000
+Received: from mail.swift-internship-verify.net (76.223.54.10) by mx.targetdomain.com; Thu, 10 Sep 2026 19:02:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=swift-internship-verify.net; dkim=pass header.d=swift-internship-verify.net; dmarc=pass (p=reject) header.from=swift-internship-verify.net
+
+Congratulations! You have been shortlisted. Send your college account credentials and pay a refundable verification fee of Rs. 2,500 within the next 2 hours.`},
+priya_2:{student:"Priya Nair",dept:"CSE",raw:`From: "Talent Acquisition Team" <recruiter@swift-internship-verify.net>
+Subject: Final Reminder - Complete Your Internship Verification Today
+Date: Fri, 11 Sep 2026 07:55:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Fri, 11 Sep 2026 07:55:05 +0000
+Received: from mail.swift-internship-verify.net (76.223.54.10) by mx.targetdomain.com; Fri, 11 Sep 2026 07:55:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=swift-internship-verify.net; dkim=pass header.d=swift-internship-verify.net; dmarc=pass (p=reject) header.from=swift-internship-verify.net
+
+Urgent - send your credentials and complete the refundable fee immediately to confirm your internship seat.`},
+rohan_1:{student:"Rohan Verma",dept:"ECE",raw:`From: "Talent Acquisition Team" <recruiter@talent-acquisition-portal.example>
+Subject: Urgent - Final Internship Selection
+Date: Thu, 10 Sep 2026 22:10:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Thu, 10 Sep 2026 22:10:05 +0000
+Received: from mail.talent-acquisition-portal.example (76.223.54.10) by mx.targetdomain.com; Thu, 10 Sep 2026 22:10:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=talent-acquisition-portal.example; dkim=pass header.d=talent-acquisition-portal.example; dmarc=pass (p=reject) header.from=talent-acquisition-portal.example
+
+Congratulations! You have been shortlisted. Send your college account credentials and pay a refundable verification fee of Rs. 2,500 within the next 2 hours.`},
+sneha_1:{student:"Sneha Iyer",dept:"MBA",raw:`From: "Careerlink Selections" <recruiter@careerlink-selection.io>
+Subject: Urgent - Final Internship Selection
+Date: Thu, 10 Sep 2026 20:30:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Thu, 10 Sep 2026 20:30:05 +0000
+Received: from mail.careerlink-selection.io (76.223.54.10) by mx.targetdomain.com; Thu, 10 Sep 2026 20:30:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=careerlink-selection.io; dkim=pass header.d=careerlink-selection.io; dmarc=pass (p=reject) header.from=careerlink-selection.io
+
+Congratulations! You have been shortlisted. Send your college account credentials and pay a refundable verification fee of Rs. 2,500 within the next 2 hours.`},
+sneha_2:{student:"Sneha Iyer",dept:"MBA",raw:`From: "Careerlink Selections" <recruiter@careerlink-selection.io>
+Subject: Final Reminder - Complete Your Internship Verification Today
+Date: Fri, 11 Sep 2026 08:15:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Fri, 11 Sep 2026 08:15:05 +0000
+Received: from mail.careerlink-selection.io (76.223.54.10) by mx.targetdomain.com; Fri, 11 Sep 2026 08:15:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=careerlink-selection.io; dkim=pass header.d=careerlink-selection.io; dmarc=pass (p=reject) header.from=careerlink-selection.io
+
+Urgent - send your credentials and complete the refundable fee immediately to confirm your internship seat.`},
+kabir_1:{student:"Kabir Malhotra",dept:"MBA",raw:`From: "Talent Acquisition Team" <recruiter@swift-internship-verify.net>
+Subject: Urgent - Final Internship Selection
+Date: Thu, 10 Sep 2026 23:00:00 +0000
+Received: from mx.targetdomain.com by inbound.targetdomain.com; Thu, 10 Sep 2026 23:00:05 +0000
+Received: from mail.swift-internship-verify.net (76.223.54.10) by mx.targetdomain.com; Thu, 10 Sep 2026 23:00:02 +0000
+Authentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom=swift-internship-verify.net; dkim=pass header.d=swift-internship-verify.net; dmarc=pass (p=reject) header.from=swift-internship-verify.net
+
+Congratulations! You have been shortlisted. Send your college account credentials and pay a refundable verification fee of Rs. 2,500 within the next 2 hours.`}
+};
+
+const NOTABLE_META = {
+killer:{sender:"Talent Acquisition Team",subject:"Urgent - Final Internship Selection",campaignId:"fake-internship"},
+campaign_variant2:{sender:"Talent Acquisition Team",subject:"Final Reminder - Complete Your Internship Verification Today",campaignId:"fake-internship"},
+scholarship_scam:{sender:"Scholarship Board",subject:"Final Notice - Your scholarship award is expiring"},
+otp_scam:{sender:"Account Security",subject:"Your account was accessed from a new device - verify now"},
+helpdesk_unusual:{sender:"IT Helpdesk",subject:"Mandatory system migration - confirm your password today"},
+interview_reschedule:{sender:"HR Coordination",subject:"Action needed - confirm your new interview slot"},
+subscription_confirm:{sender:"CareerBoost Weekly",subject:"Confirm your subscription to keep receiving job alerts"},
+fee_reminder_unusual_link:{sender:"Accounts Office",subject:"Pending fee reminder - please review"},
+recruiter_pushy:{sender:"Recruiter - GrowthStart",subject:"Only a few slots left - apply now"},
+marketplace_listing:{sender:"Campus Marketplace",subject:"Textbook bundle available - only 1 left, reply fast"},
+prior_baseline:{sender:"Talent Acquisition Team",subject:"Internship program - information and next steps"},
+registrar_receipt:{sender:"Registrar's Office",subject:"Fee receipt available for download"},
+professor_reminder:{sender:"Dr. Nandini Rao",subject:"Reminder - assignment due Friday"},
+food_delivery:{sender:"Swiggy",subject:"Your order has been delivered"},
+github_notification:{sender:"GitHub",subject:"New comment on your pull request"},
+newsletter:{sender:"Tech Insider Daily",subject:"Your Monday briefing: 5 stories in AI infrastructure"},
+linkedin_notification:{sender:"LinkedIn",subject:"You have 3 new profile views"},
+coursera_promo:{sender:"Coursera",subject:"New courses recommended for you"}
+};
+
+/* deterministic filler generator - no Math.random, same output every run */
+function mulberry32(a){ return function(){ a|=0;a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const rng = mulberry32(20260911);
+
+const FILLER_TEMPLATES = [
+  {sender:"LMS", from:"lms@amityonline.edu", ip:"103.21.58.10", subj:n=>`Reminder: Module ${n} live class today`, body:n=>`This is a reminder that Module ${n}'s live class starts at 4pm today. Join via the LMS as usual.`},
+  {sender:"GitHub", from:"notifications@github.com", ip:"142.250.80.46", subj:n=>`Comment on issue #${n} in your repo`, body:n=>`Someone commented on issue #${n} in your class project repository.`},
+  {sender:"Spotify", from:"no-reply@spotify.com", ip:"142.250.80.46", subj:n=>`Your Weekly Discover #${n} is ready`, body:n=>`Your personalised playlist is ready to stream.`},
+  {sender:"Swiggy", from:"noreply@swiggy.com", ip:"142.250.80.46", subj:n=>`Order #${1000+n} delivered`, body:n=>`Your order #${1000+n} has been delivered. Enjoy your meal!`},
+  {sender:"Tech Insider Daily", from:"newsletter@tech-insider-daily.com", ip:"142.250.80.46", subj:n=>`Daily briefing #${n}`, body:n=>`Here are today's top stories in technology and AI.`},
+  {sender:"LinkedIn", from:"notifications@linkedin.com", ip:"142.250.80.46", subj:n=>`${n} people viewed your profile this week`, body:n=>`See who's been viewing your profile this week.`},
+  {sender:"Coursera", from:"no-reply@coursera.org", ip:"142.250.80.46", subj:n=>`New course recommendation #${n}`, body:n=>`Based on your interests, here's a new course you might like.`},
+  {sender:"Library", from:"library@amityonline.edu", ip:"103.21.58.10", subj:n=>`Book due reminder - Ref #${n}`, body:n=>`This is a reminder that your borrowed book is due back soon. Ref #${n}.`},
+  {sender:"Microsoft Teams", from:"no-reply@microsoft.com", ip:"13.107.6.156", subj:n=>`Meeting invite: Study group #${n}`, body:n=>`You've been invited to a Teams meeting for study group session #${n}.`},
+  {sender:"Zomato", from:"noreply@zomato.com", ip:"142.250.80.46", subj:n=>`Order #${2000+n} confirmed`, body:n=>`Your order #${2000+n} is confirmed and on its way.`}
+];
+
+function pad2(n){ return n<10?"0"+n:""+n; }
+function makeFillerRaw(i){
+  const t = FILLER_TEMPLATES[i % FILLER_TEMPLATES.length];
+  const day = 1 + Math.floor(rng()*28);
+  const hour = 6 + Math.floor(rng()*14);
+  const dateStr = pad2(day)+" Sep 2026 "+pad2(hour)+":"+pad2(Math.floor(rng()*60))+":00 +0000";
+  const dom = t.from.split("@")[1];
+  return 'From: "'+t.sender+'" <'+t.from+'>\nReply-To: '+t.from+'\nSubject: '+t.subj(i+1)+'\nDate: '+dateStr+'\nReceived: from mx.targetdomain.com by inbound.targetdomain.com; '+dateStr+'\nReceived: from mail.relay ('+t.ip+') by mx.targetdomain.com; '+dateStr+'\nAuthentication-Results: mx.targetdomain.com; spf=pass smtp.mailfrom='+dom+'; dkim=pass header.d='+dom+'; dmarc=pass (p=reject) header.from='+dom+'\n\n'+t.body(i+1);
+}
+
+const FILLER_COUNT = 229;
+const STUDENTS = {
+  aarav:{name:"Aarav Sharma",dept:"CSE"}, priya:{name:"Priya Nair",dept:"CSE"}, rohan:{name:"Rohan Verma",dept:"ECE"},
+  sneha:{name:"Sneha Iyer",dept:"MBA"}, kabir:{name:"Kabir Malhotra",dept:"MBA"}
+};
+
+let INBOX = [];
+let CAMPAIGN_MESSAGES = [];
+
+function buildInbox(){
+  INBOX = [];
+  for(const key of Object.keys(RAW)){
+    const parsed = HaloEngine.parseEmailSource(RAW[key]);
+    const result = HaloEngine.fuse(parsed);
+    INBOX.push({ id:"n_"+key, key, meta:NOTABLE_META[key], parsed, result, campaignId:(NOTABLE_META[key]||{}).campaignId||null });
+  }
+  for(let i=0;i<FILLER_COUNT;i++){
+    const raw = makeFillerRaw(i);
+    const parsed = HaloEngine.parseEmailSource(raw);
+    const result = HaloEngine.fuse(parsed);
+    const sName = parsed.from.replace(/^"|"$/g,"").split(" <")[0];
+    INBOX.push({ id:"f_"+i, key:"filler_"+i, meta:{sender:sName,subject:parsed.subject}, parsed, result, campaignId:null });
+  }
+  const order = {"high-risk":0,"attention":1,"safe":2};
+  INBOX.sort((a,b)=> order[a.result.bucket]-order[b.result.bucket]);
+
+  CAMPAIGN_MESSAGES = [
+    { student:"aarav", raw:RAW.killer, subject:NOTABLE_META.killer.subject },
+    { student:"aarav", raw:RAW.campaign_variant2, subject:NOTABLE_META.campaign_variant2.subject }
+  ];
+  for(const k of Object.keys(CAMPAIGN_RAW)){
+    const v = CAMPAIGN_RAW[k];
+    const parsed = HaloEngine.parseEmailSource(v.raw);
+    CAMPAIGN_MESSAGES.push({ student:v.student.toLowerCase().split(" ")[0], studentName:v.student, dept:v.dept, raw:v.raw, subject:parsed.subject, domain:parsed.fromDomain });
+  }
+}
+buildInbox();
+
+function summaryCounts(){
+  const c = {"high-risk":0,"attention":0,"safe":0};
+  INBOX.forEach(e=>c[e.result.bucket]++);
+  return c;
+}
+
+function campaignFacts(){
+  const studentsSet = new Set(), deptSet = new Set(), domainSet = new Set();
+  CAMPAIGN_MESSAGES.forEach(m=>{
+    studentsSet.add(m.student);
+    deptSet.add(m.dept || STUDENTS[m.student].dept);
+    const dom = m.domain || HaloEngine.parseEmailSource(m.raw).fromDomain;
+    domainSet.add(dom);
+  });
+  return { studentsAffected:studentsSet.size, departments:[...deptSet], relatedMessages:CAMPAIGN_MESSAGES.length, relatedDomains:[...domainSet] };
+}
+
+const CAMPAIGN_LIGHT = [
+  { id:"scholarship-impersonation", name:"Scholarship Impersonation", studentsAffected:8, departments:["CSE","MBA"], relatedMessages:9,
+    relatedDomains:["scholarship-disbursement-cell.net","merit-award-verification.org"],
+    evidence:["All messages request a processing fee before disbursement.","All messages fail SPF/DKIM/DMARC.","Shared hosting infrastructure across both domains (bulk-anonymous-hosting, Amsterdam)."],
+    timeline:["06 Sep - first report from a CSE student","07 Sep - 3 more reports, same domain family","09 Sep - pattern confirmed, second domain identified"],
+    recommendedAction:"Notify affected students and publish a campus-wide advisory." },
+  { id:"interview-link-campaign", name:"Interview Link Campaign", studentsAffected:5, departments:["ECE"], relatedMessages:6,
+    relatedDomains:["swiftcareers-connect.com"],
+    evidence:["All messages link to the same external scheduling domain.","Domain registered recently, no established reputation.","Consistent artificial urgency language across all reports."],
+    timeline:["08 Sep - first report","08 Sep - 2 more reports same afternoon","10 Sep - pattern confirmed"],
+    recommendedAction:"Monitor; not yet at the severity of the fake internship campaign." }
+];
+
+/* ============ APP STATE ============ */
+const APP = { screen:"landing", nav:"student", provider:null, scanned:false, inboxFilter:"all", currentEmailId:null, currentCampaignId:null, notified:new Set(), activeTab:"auth", lastScanTime:null, techOpen:false };
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("shown");
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(()=>t.classList.remove("shown"),3400);
+}
+
+function renderTicker(){
+  const f = campaignFacts();
+  const items = [
+    'CAMPUS THREAT FEED: "Fake Internship Campaign" - '+f.studentsAffected+' students affected across '+f.departments.length+' departments',
+    '<span class="hot">ACTIVE: Scholarship Impersonation - 8 students affected</span>',
+    'Interview Link Campaign - 5 students affected, ECE department',
+    'HALO UPLINK: STABLE - running entirely in your browser',
+    '<span class="hot">'+f.relatedMessages+' related messages correlated across '+f.relatedDomains.length+' domains, shared infrastructure</span>'
+  ];
+  document.getElementById("tickerTrack").innerHTML = items.map(t=>'<span>'+t+'</span>').join("");
+}
+renderTicker();
+
+function esc(s){ return (s||"").replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+function fmtDate(d){ return (d||"").replace(/,\s*/,", "); }
+
+function badgeFor(bucket){
+  const map = {"high-risk":["high","HIGH RISK"],"attention":["attention","NEEDS ATTENTION"],"safe":["safe","LOOKS SAFE"]};
+  return map[bucket];
+}
+
+/* ============ NAV / SUBNAV ============ */
+function renderNav(){
+  document.querySelectorAll("#navSwitch .mode-btn").forEach(b=>b.classList.toggle("active", b.dataset.nav===APP.nav));
+  const s = document.getElementById("subnavStudent"), i = document.getElementById("subnavInstitution");
+  if(APP.nav==="student"){
+    s.style.display="flex"; i.style.display="none";
+    const items = [["inbox","Inbox"],["attention","Need Attention"],["scan","Scan"],["reports","Reports"]];
+    s.innerHTML = items.map(([key,label])=>{
+      let active = false;
+      if(key==="inbox" && APP.screen==="inbox" && APP.inboxFilter!=="attention") active=true;
+      if(key==="attention" && APP.screen==="inbox" && APP.inboxFilter==="attention") active=true;
+      if(key==="scan" && (APP.screen==="scanning"||APP.screen==="landing")) active=true;
+      if(key==="reports" && APP.screen==="reports") active=true;
+      return '<button data-action="subnav-student" data-key="'+key+'" class="'+(active?"active":"")+'">'+label+'</button>';
+    }).join("");
+  } else {
+    s.style.display="none"; i.style.display="flex";
+    const items = [["overview","Overview"],["campaigns","Campaigns"],["students","Students at Risk"],["investigations","Investigations"]];
+    i.innerHTML = items.map(([key,label])=>{
+      const active = (key==="overview"&&APP.screen==="inst-overview") || (key==="campaigns"&&(APP.screen==="inst-campaigns"||APP.screen==="campaign-detail")) || (key==="students"&&APP.screen==="inst-students") || (key==="investigations"&&APP.screen==="inst-investigations");
+      return '<button data-action="subnav-inst" data-key="'+key+'" class="'+(active?"active":"")+'">'+label+'</button>';
+    }).join("");
+  }
+}
+
+/* ============ SCREEN: LANDING ============ */
+function screenLanding(){
+  return '<div class="connect-wrap">'+
+    '<h1>HALO 2.0</h1>'+
+    '<p>Contextual email trust &amp; forensic intelligence for campus placements.</p>'+
+    '<div class="connect-card">'+
+      '<h2>CONNECT YOUR EMAIL</h2>'+
+      '<button class="provider-btn" data-action="connect" data-provider="Google">Continue with Google</button>'+
+      '<button class="provider-btn" data-action="connect" data-provider="Microsoft">Continue with Microsoft</button>'+
+      '<p class="connect-note">Demo Mode: no real account required. HALO uses a synthetic inbox (Aarav Sharma, Amity University) so the full flow works offline.</p>'+
+    '</div>'+
+  '</div>';
+}
+
+/* ============ SCREEN: SCANNING ============ */
+const SCAN_STAGES = ["Checking sender identity","Understanding message content","Looking for unusual requests","Checking links and domains","Comparing communication patterns","Looking for related messages"];
+function screenScanning(){
+  return '<div class="scan-wrap">'+
+    '<div class="panel" style="text-align:center;">'+
+      '<div class="panel-title" style="text-align:left;">INBOX SCAN IN PROGRESS</div>'+
+      '<div class="scan-counter" id="scanCounter">0</div>'+
+      '<div class="scan-counter-label">EMAILS CHECKED</div>'+
+      '<ul class="stage-list" id="stageList">'+
+        SCAN_STAGES.map(s=>'<li><span class="mark"></span>'+s+'</li>').join("")+
+      '</ul>'+
+      '<div id="scanDoneWrap" style="margin-top:18px;display:none;">'+
+        '<button class="pixel-btn block" data-action="view-results">VIEW RESULTS</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+function runScanAnimation(){
+  const counterEl = document.getElementById("scanCounter");
+  const stageItems = document.querySelectorAll("#stageList li");
+  const total = INBOX.length;
+  let shown = 0;
+  const stageDelay = 420;
+  stageItems.forEach((li,idx)=>{
+    setTimeout(()=>{ li.classList.add("done"); li.querySelector(".mark").textContent="OK"; }, idx*stageDelay);
+  });
+  const duration = stageItems.length*stageDelay + 400;
+  const start = performance.now();
+  function tick(now){
+    const p = Math.min(1,(now-start)/duration);
+    shown = Math.round(p*total);
+    if(counterEl) counterEl.textContent = shown;
+    if(p<1) requestAnimationFrame(tick);
+    else {
+      if(counterEl) counterEl.textContent = total;
+      APP.scanned = true;
+      APP.lastScanTime = new Date().toLocaleString();
+      const w = document.getElementById("scanDoneWrap");
+      if(w) w.style.display = "block";
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ============ SCREEN: SCAN COMPLETE ============ */
+function screenScanComplete(){
+  const c = summaryCounts();
+  const total = INBOX.length;
+  return '<div class="scan-wrap" style="max-width:760px;">'+
+    '<div class="panel">'+
+      '<div class="panel-title">SCAN COMPLETE</div>'+
+      '<p style="font-size:19px;text-align:center;margin-top:-6px;">'+total+' emails checked</p>'+
+      '<div class="summary-grid">'+
+        '<div class="summary-card high" data-action="open-inbox" data-filter="high-risk"><div class="sc-num">'+c["high-risk"]+'</div><div class="sc-label">HIGH RISK</div></div>'+
+        '<div class="summary-card attn" data-action="open-inbox" data-filter="attention"><div class="sc-num">'+c["attention"]+'</div><div class="sc-label">NEEDS ATTENTION</div></div>'+
+        '<div class="summary-card safe" data-action="open-inbox" data-filter="safe"><div class="sc-num">'+c["safe"]+'</div><div class="sc-label">LOOKS SAFE</div></div>'+
+      '</div>'+
+      '<p style="color:var(--ink-soft);font-size:15px;margin-top:16px;">HALO does not claim any of these messages are 100% malicious. These are assessments based on multiple independent signals - tap a category to review.</p>'+
+    '</div>'+
+  '</div>';
+}
+
+/* ============ SCREEN: INBOX ============ */
+function screenInbox(){
+  const filter = APP.inboxFilter;
+  const list = filter==="all" ? INBOX : INBOX.filter(e=>e.result.bucket===filter);
+  const filterLabel = {all:"All",  "high-risk":"High Risk","attention":"Needs Attention",safe:"Looks Safe"}[filter];
+  const tabs = ["all","high-risk","attention","safe"].map(f=>{
+    const label = {all:"All","high-risk":"High Risk",attention:"Needs Attention",safe:"Looks Safe"}[f];
+    return '<button class="tab-btn '+(f===filter?"active":"")+'" data-action="filter-inbox" data-filter="'+f+'">'+label+'</button>';
+  }).join("");
+  const rows = list.map(e=>{
+    const [cls,label] = badgeFor(e.result.bucket);
+    const rowCls = e.result.bucket==="high-risk"?"high":e.result.bucket;
+    return '<div class="inbox-row '+rowCls+'" data-action="open-email" data-id="'+e.id+'">'+
+      '<div class="ir-main"><div class="ir-subject">'+esc(e.meta.subject)+'</div><div class="ir-sender">'+esc(e.meta.sender)+'</div></div>'+
+      '<span class="badge-pill '+cls+'">'+label+'</span>'+
+      '<span class="ir-date">'+esc(fmtDate(e.parsed.date))+'</span>'+
+    '</div>';
+  }).join("");
+  return '<div class="panel">'+
+    '<div class="tab-row">'+tabs+'</div>'+
+    '<div id="inboxList" style="margin-top:14px;">'+(rows||'<p class="footnote">No messages in this category.</p>')+'</div>'+
+  '</div>';
+}
+
+/* ============ SCREEN: EMAIL DETAIL ============ */
+function findEmail(id){ return INBOX.find(e=>e.id===id); }
+
+function trustGaugeSVG(score, verdictColor){
+  const ARC = 298;
+  const offset = ARC - (ARC*score/100);
+  return '<svg width="180" height="110" viewBox="0 0 220 130">'+
+    '<path d="M15,115 A95,95 0 0,1 205,115" fill="none" stroke="var(--rule)" stroke-width="16" stroke-linecap="round"/>'+
+    '<path d="M15,115 A95,95 0 0,1 205,115" fill="none" stroke="'+verdictColor+'" stroke-width="16" stroke-linecap="round" stroke-dasharray="'+ARC+'" stroke-dashoffset="'+offset+'"/>'+
+  '</svg>';
+}
+
+function evidenceTabsHTML(r){
+  const idn = r.identity, con = r.content, beh = r.behaviour, inf = r.infra, p = r.parsed;
+  const tabs = [["auth","Authentication"],["content","Content & Intent"],["behaviour","Behaviour"],["infra","Infrastructure"],["headers","Raw Headers"]];
+  const tabBtns = tabs.map(([k,l])=>'<button class="tab-btn '+(APP.activeTab===k?"active":"")+'" data-action="evidence-tab" data-tab="'+k+'">'+l+'</button>').join("");
+
+  const authPanel = '<div class="tab-content '+(APP.activeTab==="auth"?"active":"")+'" data-tabpanel="auth">'+
+    '<div class="metric-grid">'+
+      '<div class="metric-card"><div class="m-label">SPF</div><div class="m-value '+(p.auth.spf==="PASS"?"flag-ok":"flag-bad")+'">'+p.auth.spf+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">DKIM</div><div class="m-value '+(p.auth.dkim==="PASS"?"flag-ok":"flag-bad")+'">'+p.auth.dkim+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">DMARC</div><div class="m-value '+(p.auth.dmarc==="PASS"?"flag-ok":"flag-bad")+'">'+p.auth.dmarc+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">SENDING DOMAIN</div><div class="m-value">'+esc(p.fromDomain||"-")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">SENDER</div><div class="m-value">'+esc(p.from)+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">IDENTITY TRUST POINTS</div><div class="m-value">'+idn.points+' / 25</div></div>'+
+    '</div>'+
+    '<ul class="why-list">'+idn.evidence.map(x=>'<li>- '+esc(x)+'</li>').join("")+'</ul>'+
+  '</div>';
+
+  const contentPanel = '<div class="tab-content '+(APP.activeTab==="content"?"active":"")+'" data-tabpanel="content">'+
+    '<div class="metric-grid">'+
+      '<div class="metric-card"><div class="m-label">CREDENTIAL_REQUEST</div><div class="m-value '+(con.credential_request?"flag-bad":"flag-ok")+'">'+(con.credential_request?"detected":"none")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">PAYMENT_REQUEST</div><div class="m-value '+(con.payment_request?"flag-bad":"flag-ok")+'">'+(con.payment_request?"detected":"none")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">URGENCY</div><div class="m-value '+(con.urgency!=="NONE"?"flag-bad":"flag-ok")+'">'+con.urgency+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">SOCIAL_ENGINEERING_INDICATORS</div><div class="m-value '+(con.social_engineering_indicators?"flag-bad":"flag-ok")+'">'+(con.social_engineering_indicators?"detected":"none")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">CONTENT &amp; INTENT POINTS</div><div class="m-value">'+con.points+' / 25</div></div>'+
+    '</div>'+
+    '<ul class="why-list">'+con.evidenceTech.map(x=>'<li>- '+esc(x)+'</li>').join("")+'</ul>'+
+  '</div>';
+
+  const behPanel = '<div class="tab-content '+(APP.activeTab==="behaviour"?"active":"")+'" data-tabpanel="behaviour">'+
+    '<div class="baseline-grid">'+
+      '<div class="baseline-card"><div class="bl-label">CREDENTIAL REQUESTS</div><div class="bl-row"><span>Historical</span><span>'+beh.historicalCredentialRequests+'</span></div><div class="bl-row"><span>Current</span><span class="'+(beh.currentCredential>beh.historicalCredentialRequests?"flag-bad":"")+'">'+beh.currentCredential+'</span></div></div>'+
+      '<div class="baseline-card"><div class="bl-label">PAYMENT REQUESTS</div><div class="bl-row"><span>Historical</span><span>'+beh.historicalPaymentRequests+'</span></div><div class="bl-row"><span>Current</span><span class="'+(beh.currentPayment>beh.historicalPaymentRequests?"flag-bad":"")+'">'+beh.currentPayment+'</span></div></div>'+
+    '</div>'+
+    '<div class="metric-grid" style="margin-top:12px;">'+
+      '<div class="metric-card"><div class="m-label">SENDER SEEN BEFORE</div><div class="m-value">'+(beh.seenBefore?"yes":"no")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">REQUEST DEVIATION</div><div class="m-value '+(beh.deviation==="HIGH"?"flag-bad":"flag-ok")+'">'+beh.deviation+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">BEHAVIOUR POINTS</div><div class="m-value">'+beh.points+' / 25</div></div>'+
+    '</div>'+
+    '<ul class="why-list">'+beh.evidencePlain.map(x=>'<li>- '+esc(x)+'</li>').join("")+'</ul>'+
+  '</div>';
+
+  const infMeta = inf.meta;
+  const infPanel = '<div class="tab-content '+(APP.activeTab==="infra"?"active":"")+'" data-tabpanel="infra">'+
+    '<div class="metric-grid">'+
+      '<div class="metric-card"><div class="m-label">OBSERVED IP</div><div class="m-value">'+(inf.ip||"unknown")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">ASN / HOSTING</div><div class="m-value">'+(infMeta?esc(infMeta.asn+" - "+infMeta.org):"unknown")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">OBSERVED REGION</div><div class="m-value">'+(infMeta?esc(infMeta.region+", "+infMeta.country):"unknown")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">CONFIDENCE</div><div class="m-value">'+(infMeta?infMeta.confidence:"Low")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">INFRASTRUCTURE POINTS</div><div class="m-value">'+inf.points+' / 25</div></div>'+
+    '</div>'+
+    '<p style="font-size:15px;color:var(--ink-soft);margin-top:10px;">This shows where the observed sending infrastructure is located. It does not prove where the attacker is physically located - a VPN, proxy, or compromised system can and will change this. HALO treats this as supporting evidence only, combined with the other three signal families.</p>'+
+  '</div>';
+
+  let hl = esc(p.headerLines.join("\n"))
+    .replace(/spf=FAIL/g,'<span class="hl-fail">spf=FAIL</span>')
+    .replace(/dkim=FAIL/g,'<span class="hl-fail">dkim=FAIL</span>')
+    .replace(/dmarc=FAIL[^\n]*/g,m=>'<span class="hl-fail">'+m+'</span>')
+    .replace(/spf=PASS/g,'<span class="hl-pass">spf=PASS</span>')
+    .replace(/dkim=PASS/g,'<span class="hl-pass">dkim=PASS</span>')
+    .replace(/dmarc=PASS[^\n]*/g,m=>'<span class="hl-pass">'+m+'</span>');
+  const headersPanel = '<div class="tab-content '+(APP.activeTab==="headers"?"active":"")+'" data-tabpanel="headers">'+
+    '<div class="header-block">'+hl+'</div>'+
+  '</div>';
+
+  return '<div class="tab-row">'+tabBtns+'</div>'+authPanel+contentPanel+behPanel+infPanel+headersPanel;
+}
+
+function screenEmailDetail(){
+  const e = findEmail(APP.currentEmailId);
+  if(!e) return '<div class="panel">Message not found.</div><button class="pixel-btn secondary" data-action="back-inbox">BACK TO INBOX</button>';
+  const r = e.result;
+  const [cls] = badgeFor(r.bucket);
+  const verdictColor = r.bucket==="high-risk"?"var(--accent)":r.bucket==="attention"?"var(--warn)":"var(--safe)";
+
+  const backBtn = '<button class="pixel-btn secondary" data-action="back-inbox" style="margin-bottom:14px;">&lt; BACK TO INBOX</button>';
+
+  const header = '<div class="panel" style="margin-bottom:12px;">'+
+    '<div style="font-size:20px;color:var(--ink);">'+esc(e.meta.subject)+'</div>'+
+    '<div style="font-size:15px;color:var(--ink-soft);">From: '+esc(e.parsed.from)+' &middot; '+esc(fmtDate(e.parsed.date))+'</div>'+
+  '</div>';
+
+  const verdict = '<div class="verdict-block '+(r.bucket==="high-risk"?"high":r.bucket)+'">'+
+    '<div class="verdict-badges">'+
+      '<span class="badge-pill '+cls+'">'+badgeFor(r.bucket)[1]+'</span>'+
+      '<span class="vbadge">TECHNICAL LEGITIMACY: '+r.technicalLegitimacy+'</span>'+
+      '<span class="vbadge">CONTEXTUAL LEGITIMACY: '+r.contextualLegitimacy+'</span>'+
+    '</div>'+
+    '<div class="verdict-headline">'+esc(r.headline)+'</div>'+
+    (r.whyReasons.length ? '<div style="font-size:15px;color:var(--ink-soft);margin-bottom:4px;">WHY WE FLAGGED IT</div><ul class="why-list">'+r.whyReasons.map(x=>'<li>! '+esc(x)+'</li>').join("")+'</ul>' : '')+
+    '<div class="trust-gauge-wrap" style="margin-top:10px;">'+
+      trustGaugeSVG(r.trustScore, verdictColor)+
+      '<div><div class="gauge-readout" style="color:'+verdictColor+';">'+r.trustScore+' / 100</div><div class="gauge-cap">TRUST SCORE</div></div>'+
+    '</div>'+
+    (r.recommendedActions.length ? '<div style="font-size:15px;color:var(--ink-soft);margin:12px 0 4px;">WHAT SHOULD YOU DO?</div><ul class="why-list">'+r.recommendedActions.map(x=>'<li>&gt; '+esc(x)+'</li>').join("")+'</ul>' : '')+
+    '<div class="action-row">'+
+      (r.bucket!=="safe" ? '<button class="pixel-btn" data-action="verify-opportunity">VERIFY THE OPPORTUNITY</button><button class="pixel-btn secondary" data-action="report-tp">REPORT TO T&amp;P CELL</button>' : '<button class="pixel-btn safe" data-action="mark-safe">OK, GOT IT</button>')+
+      (e.campaignId ? '<button class="pixel-btn ghost" data-action="view-related" data-campaign="'+e.campaignId+'">VIEW RELATED REPORTS</button>' : '')+
+    '</div>'+
+  '</div>';
+
+  const techToggle = '<details style="margin-top:8px;" id="techDetails" '+(APP.techOpen?"open":"")+'><summary style="cursor:pointer;font-size:17px;color:var(--ink-soft);">Technical details are available if you want to know why. (See why)</summary>'+
+    '<div class="panel" style="margin-top:10px;">'+evidenceTabsHTML(r)+'</div>'+
+  '</details>';
+
+  return backBtn+header+verdict+techToggle;
+}
+
+/* ============ SCREEN: CORRELATION GRAPH ============ */
+function screenGraph(campaignId){
+  const facts = campaignFacts();
+  const students = [...new Set(CAMPAIGN_MESSAGES.map(m=>m.student))];
+  const domains = facts.relatedDomains;
+  const n = students.length, d = domains.length;
+  const cx=340, cy=140, rStud=85, rDom=180;
+  const studPos = students.map((s,i)=>({key:s,name:STUDENTS[s].name,dept:STUDENTS[s].dept,
+    x:cx+rStud*Math.cos((i/n)*2*Math.PI-Math.PI/2), y:cy+rStud*Math.sin((i/n)*2*Math.PI-Math.PI/2)*0.62}));
+  const domPos = domains.map((dm,i)=>({key:dm,
+    x:cx+rDom*Math.cos((i/d)*2*Math.PI-Math.PI/2+0.3), y:cy+rDom*Math.sin((i/d)*2*Math.PI-Math.PI/2+0.3)*0.5-6}));
+  const infraX = cx, infraY = cy+2;
+
+  const ns = "http://www.w3.org/2000/svg";
+  let svg = '<svg id="corrGraph" viewBox="0 0 680 300" xmlns="'+ns+'"><g transform="translate(0,14)">';
+  // edges: student -> domain (based on which domains that student's messages used)
+  CAMPAIGN_MESSAGES.forEach(m=>{
+    const sp = studPos.find(s=>s.key===m.student);
+    const dom = m.domain || HaloEngine.parseEmailSource(m.raw).fromDomain;
+    const dp = domPos.find(x=>x.key===dom);
+    if(sp && dp) svg += '<line x1="'+sp.x+'" y1="'+sp.y+'" x2="'+dp.x+'" y2="'+dp.y+'" stroke="#2a4a5a" stroke-width="1.5" opacity="0.8"/>';
+  });
+  // domain -> shared infra node
+  domPos.forEach(dp=>{ svg += '<line x1="'+dp.x+'" y1="'+dp.y+'" x2="'+infraX+'" y2="'+infraY+'" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>'; });
+  // infra node (center)
+  svg += '<circle cx="'+infraX+'" cy="'+infraY+'" r="9" fill="var(--accent)"/><text x="'+infraX+'" y="'+(infraY-14)+'" fill="var(--accent)" font-size="11" text-anchor="middle" font-family="VT323">shared infra</text>';
+  // domain nodes
+  domPos.forEach(dp=>{
+    svg += '<circle cx="'+dp.x+'" cy="'+dp.y+'" r="7" fill="var(--cyan)"/>';
+    svg += '<text x="'+dp.x+'" y="'+(dp.y-12)+'" fill="var(--cyan)" font-size="11" text-anchor="middle" font-family="VT323">'+esc(dp.key)+'</text>';
+  });
+  // student nodes
+  studPos.forEach(sp=>{
+    svg += '<circle cx="'+sp.x+'" cy="'+sp.y+'" r="10" fill="#f5f3ee" stroke="var(--rule)" stroke-width="2"/>';
+    svg += '<text x="'+sp.x+'" y="'+(sp.y+4)+'" fill="var(--bg-void)" font-size="10" text-anchor="middle" font-family="VT323">'+esc(sp.name.split(" ")[0])+'</text>';
+    svg += '<text x="'+sp.x+'" y="'+(sp.y+22)+'" fill="var(--rule)" font-size="10" text-anchor="middle" font-family="VT323">'+esc(sp.dept)+'</text>';
+  });
+  svg += '</g></svg>';
+
+  return '<button class="pixel-btn secondary" data-action="back-email" style="margin-bottom:14px;">&lt; BACK TO MESSAGE</button>'+
+    '<div class="panel">'+
+      '<div class="panel-title">COORDINATED CAMPAIGN DETECTED</div>'+
+      '<div class="metric-grid" style="margin-bottom:14px;">'+
+        '<div class="metric-card"><div class="m-label">STUDENTS AFFECTED</div><div class="m-value flag-bad">'+facts.studentsAffected+'</div></div>'+
+        '<div class="metric-card"><div class="m-label">DEPARTMENTS</div><div class="m-value">'+facts.departments.join(", ")+'</div></div>'+
+        '<div class="metric-card"><div class="m-label">RELATED MESSAGES</div><div class="m-value flag-bad">'+facts.relatedMessages+'</div></div>'+
+        '<div class="metric-card"><div class="m-label">RELATED DOMAINS</div><div class="m-value flag-bad">'+facts.relatedDomains.length+'</div></div>'+
+      '</div>'+
+      '<div class="graph-shell">'+svg+'</div>'+
+      '<div class="graph-legend">'+
+        '<span><span class="legend-dot" style="background:#f5f3ee;border:1px solid var(--rule);"></span>Student</span>'+
+        '<span><span class="legend-dot" style="background:var(--cyan);"></span>Sending domain</span>'+
+        '<span><span class="legend-dot" style="background:var(--accent);"></span>Shared infrastructure</span>'+
+      '</div>'+
+      '<p style="font-size:15px;color:var(--ink-soft);margin-top:12px;">All three domains route through the same observed hosting infrastructure, despite using different sender names. This is what lets HALO connect reports that look unrelated on their own.</p>'+
+    '</div>';
+}
+/* ============ INSTITUTION: OVERVIEW ============ */
+function screenInstOverview(){
+  const facts = campaignFacts();
+  return '<div class="panel">'+
+    '<div class="panel-title">T&amp;P CELL - CAMPUS OVERVIEW</div>'+
+    '<div class="metric-grid">'+
+      '<div class="metric-card"><div class="m-label">ACTIVE CAMPAIGNS</div><div class="m-value flag-bad">3</div></div>'+
+      '<div class="metric-card"><div class="m-label">STUDENTS AFFECTED (all campaigns)</div><div class="m-value flag-bad">'+(facts.studentsAffected+8+5)+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">DEPARTMENTS TOUCHED</div><div class="m-value">CSE, ECE, MBA</div></div>'+
+      '<div class="metric-card"><div class="m-label">REPORTS THIS WEEK</div><div class="m-value">23</div></div>'+
+    '</div>'+
+    '<p style="font-size:15px;color:var(--ink-soft);margin-top:14px;">This view shows security findings and campaign information only. HALO does not give the T&amp;P Cell unrestricted access to individual students\' personal inboxes.</p>'+
+    '<button class="pixel-btn" data-action="subnav-inst" data-key="campaigns" style="margin-top:8px;">VIEW ACTIVE CAMPAIGNS</button>'+
+  '</div>';
+}
+
+/* ============ INSTITUTION: CAMPAIGNS LIST ============ */
+function allCampaigns(){
+  const facts = campaignFacts();
+  return [
+    { id:"fake-internship", name:"Fake Internship Campaign", studentsAffected:facts.studentsAffected, departments:facts.departments, relatedMessages:facts.relatedMessages, relatedDomains:facts.relatedDomains, severity:"high" },
+    ...CAMPAIGN_LIGHT.map(c=>({...c, severity: c.id==="scholarship-impersonation"?"high":"attention"}))
+  ];
+}
+function screenInstCampaigns(){
+  const rows = allCampaigns().map(c=>{
+    return '<div class="campaign-row" data-action="open-campaign" data-id="'+c.id+'">'+
+      '<h3>'+esc(c.name)+'</h3>'+
+      '<div class="cr-stats">'+c.studentsAffected+' students affected &middot; '+c.departments.length+' department'+(c.departments.length===1?"":"s")+' &middot; '+c.relatedMessages+' related emails</div>'+
+    '</div>';
+  }).join("");
+  return '<div class="panel"><div class="panel-title">ACTIVE CAMPAIGNS</div>'+rows+'</div>';
+}
+
+/* ============ INSTITUTION: STUDENTS AT RISK ============ */
+function screenInstStudents(){
+  const counts = {};
+  CAMPAIGN_MESSAGES.forEach(m=>{ counts[m.student]=(counts[m.student]||0)+1; });
+  const rows = Object.keys(counts).map(k=>{
+    const s = STUDENTS[k];
+    return '<div class="metric-card" style="margin-bottom:8px;"><div class="m-label">'+esc(s.name)+' &middot; '+esc(s.dept)+'</div><div class="m-value flag-bad">'+counts[k]+' related message(s) - Fake Internship Campaign</div></div>';
+  }).join("");
+  return '<div class="panel"><div class="panel-title">STUDENTS AT RISK</div>'+rows+
+    '<p style="font-size:15px;color:var(--ink-soft);margin-top:10px;">This list reflects students with related high-risk reports, not general inbox access.</p></div>';
+}
+
+/* ============ INSTITUTION: INVESTIGATIONS ============ */
+function screenInstInvestigations(){
+  const rows = allCampaigns().map(c=>{
+    return '<div class="campaign-row" data-action="open-campaign" data-id="'+c.id+'">'+
+      '<h3>'+esc(c.name)+'</h3>'+
+      '<div class="cr-stats">Status: '+(c.severity==="high"?"OPEN - HIGH SEVERITY":"MONITORING")+'</div>'+
+    '</div>';
+  }).join("");
+  return '<div class="panel"><div class="panel-title">OPEN INVESTIGATIONS</div>'+rows+'</div>';
+}
+
+/* ============ INSTITUTION: CAMPAIGN DETAIL ============ */
+function screenCampaignDetail(id){
+  const c = allCampaigns().find(x=>x.id===id);
+  if(!c) return '<div class="panel">Campaign not found.</div>';
+  const tabs = [["overview","Overview"],["evidence","Evidence"],["timeline","Timeline"],["students","Students"]];
+  const tabBtns = tabs.map(([k,l])=>'<button class="tab-btn '+(APP.activeTab===k?"active":"")+'" data-action="campaign-tab" data-tab="'+k+'">'+l+'</button>').join("");
+
+  const evidence = c.evidence || ["All messages request credentials and/or payment.","All messages create artificial urgency.","Messages route through shared hosting infrastructure across multiple sender domains."];
+  const timeline = c.timeline || ["10 Sep, 19:02 - first report (Priya Nair, CSE)","10 Sep, 21:14 - second report (Aarav Sharma, CSE)","10 Sep, 22:10-23:00 - three more reports (ECE, MBA)","11 Sep, 07:55-08:40 - reminder wave sent to all five students"];
+  const recommendedAction = c.recommendedAction || "Notify affected students, publish a campus-wide advisory, and block the related domains at the mail gateway.";
+
+  const studentsInCampaign = id==="fake-internship" ? [...new Set(CAMPAIGN_MESSAGES.map(m=>m.student))].map(k=>STUDENTS[k].name+" ("+STUDENTS[k].dept+")") : ["(synthetic summary data for this campaign)"];
+
+  const overviewPanel = '<div class="tab-content '+(APP.activeTab==="overview"?"active":"")+'" data-tabpanel="overview">'+
+    '<div class="metric-grid">'+
+      '<div class="metric-card"><div class="m-label">STUDENTS AFFECTED</div><div class="m-value flag-bad">'+c.studentsAffected+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">DEPARTMENTS</div><div class="m-value">'+c.departments.join(", ")+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">RELATED MESSAGES</div><div class="m-value">'+c.relatedMessages+'</div></div>'+
+      '<div class="metric-card"><div class="m-label">RELATED DOMAINS</div><div class="m-value">'+c.relatedDomains.join(", ")+'</div></div>'+
+    '</div>'+
+    '<p style="font-size:16px;margin-top:12px;"><strong>Recommended action:</strong> '+esc(recommendedAction)+'</p>'+
+  '</div>';
+  const evidencePanel = '<div class="tab-content '+(APP.activeTab==="evidence"?"active":"")+'" data-tabpanel="evidence"><ul class="why-list">'+evidence.map(x=>'<li>- '+esc(x)+'</li>').join("")+'</ul></div>';
+  const timelinePanel = '<div class="tab-content '+(APP.activeTab==="timeline"?"active":"")+'" data-tabpanel="timeline"><ul class="timeline">'+timeline.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ul></div>';
+  const studentsPanel = '<div class="tab-content '+(APP.activeTab==="students"?"active":"")+'" data-tabpanel="students"><ul class="why-list">'+studentsInCampaign.map(x=>'<li>- '+esc(x)+'</li>').join("")+'</ul></div>';
+
+  const notified = APP.notified.has(id);
+  return '<button class="pixel-btn secondary" data-action="subnav-inst" data-key="campaigns" style="margin-bottom:14px;">&lt; BACK TO CAMPAIGNS</button>'+
+    '<div class="panel">'+
+      '<div class="panel-title">'+esc(c.name).toUpperCase()+'</div>'+
+      '<div class="tab-row">'+tabBtns+'</div>'+overviewPanel+evidencePanel+timelinePanel+studentsPanel+
+      '<div class="action-row" style="margin-top:16px;border-top:2px solid var(--ink);padding-top:14px;">'+
+        '<button class="pixel-btn" data-action="notify-students" data-id="'+id+'" '+(notified?"disabled":"")+'>'+(notified?"NOTIFIED &#10003;":"NOTIFY AFFECTED STUDENTS")+'</button>'+
+        '<button class="pixel-btn secondary" data-action="export-report" data-id="'+id+'">EXPORT INCIDENT REPORT</button>'+
+        (id==="fake-internship" ? '<button class="pixel-btn ghost" data-action="view-related" data-campaign="fake-internship">INVESTIGATE (VIEW GRAPH)</button>' : '')+
+      '</div>'+
+    '</div>';
+}
+
+/* ============ REPORTS ============ */
+function screenReports(){
+  const c = summaryCounts();
+  const line = APP.lastScanTime ? ('Last scan: '+APP.lastScanTime+' - '+INBOX.length+' emails checked, '+c["high-risk"]+' high risk, '+c["attention"]+' needs attention.') : "No scans run yet this session.";
+  return '<div class="panel"><div class="panel-title">SCAN HISTORY</div><p style="font-size:17px;">'+line+'</p></div>';
+}
+
+function campaignDetailData(c){
+  const evidence = c.evidence || ["All messages request credentials and/or payment.","All messages create artificial urgency.","Messages route through shared hosting infrastructure across multiple sender domains."];
+  const timeline = c.timeline || ["10 Sep, 19:02 - first report (Priya Nair, CSE)","10 Sep, 21:14 - second report (Aarav Sharma, CSE)","10 Sep, 22:10-23:00 - three more reports (ECE, MBA)","11 Sep, 07:55-08:40 - reminder wave sent to all five students"];
+  const recommendedAction = c.recommendedAction || "Notify affected students, publish a campus-wide advisory, and block the related domains at the mail gateway.";
+  return {evidence,timeline,recommendedAction};
+}
+
+/* ============ RENDER DISPATCH ============ */
+function render(){
+  renderNav();
+  const root = document.getElementById("screenRoot");
+  let html;
+  switch(APP.screen){
+    case "landing": html = screenLanding(); break;
+    case "scanning": html = screenScanning(); break;
+    case "scan-complete": html = screenScanComplete(); break;
+    case "inbox": html = screenInbox(); break;
+    case "email-detail": html = screenEmailDetail(); break;
+    case "graph": html = screenGraph(APP.currentCampaignId); break;
+    case "inst-overview": html = screenInstOverview(); break;
+    case "inst-campaigns": html = screenInstCampaigns(); break;
+    case "inst-students": html = screenInstStudents(); break;
+    case "inst-investigations": html = screenInstInvestigations(); break;
+    case "campaign-detail": html = screenCampaignDetail(APP.currentCampaignId); break;
+    case "reports": html = screenReports(); break;
+    default: html = screenLanding();
+  }
+  root.innerHTML = html;
+  if(APP.screen==="scanning") runScanAnimation();
+  if(APP.screen==="email-detail"){
+    const det = document.getElementById("techDetails");
+    if(det) det.addEventListener("toggle", ()=>{ APP.techOpen = det.open; });
+  }
+}
+
+/* ============ EVENT WIRING ============ */
+function exportIncidentReport(id){
+  const c = allCampaigns().find(x=>x.id===id);
+  if(!c) return;
+  const d = campaignDetailData(c);
+  const report = "=======================================================\n"+
+"HALO - INCIDENT REPORT\n"+
+"Generated: "+new Date().toLocaleString()+"\n"+
+"=======================================================\n\n"+
+"CAMPAIGN: "+c.name+"\n"+
+"STUDENTS AFFECTED: "+c.studentsAffected+"\n"+
+"DEPARTMENTS: "+c.departments.join(", ")+"\n"+
+"RELATED MESSAGES: "+c.relatedMessages+"\n"+
+"RELATED DOMAINS: "+c.relatedDomains.join(", ")+"\n\n"+
+"--- EVIDENCE ---\n"+d.evidence.map(x=>"- "+x).join("\n")+"\n\n"+
+"--- TIMELINE ---\n"+d.timeline.map(x=>"- "+x).join("\n")+"\n\n"+
+"--- RECOMMENDED ACTION ---\n"+d.recommendedAction+"\n\n"+
+"=======================================================\n"+
+"END OF REPORT - HALO PROTOTYPE, SYNTHETIC DEMO DATA\n"+
+"=======================================================";
+  const blob = new Blob([report], {type:"text/plain"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "halo_incident_"+id+".txt";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("Incident report exported.");
+}
+
+document.addEventListener("click", (ev)=>{
+  const el = ev.target.closest("[data-action]");
+  if(!el) return;
+  const action = el.dataset.action;
+  if(action==="connect"){
+    APP.provider = el.dataset.provider;
+    showToast("Connected via "+APP.provider+" - your inbox is connected.");
+    setTimeout(()=>{ APP.screen="scanning"; render(); }, 900);
+  } else if(action==="view-results"){ APP.screen="scan-complete"; render(); }
+  else if(action==="open-inbox"){ APP.inboxFilter = el.dataset.filter; APP.screen="inbox"; render(); }
+  else if(action==="filter-inbox"){ APP.inboxFilter = el.dataset.filter; render(); }
+  else if(action==="open-email"){ APP.currentEmailId = el.dataset.id; APP.activeTab="auth"; APP.techOpen=false; APP.screen="email-detail"; render(); }
+  else if(action==="back-inbox"){ APP.screen="inbox"; render(); }
+  else if(action==="evidence-tab"){ APP.activeTab = el.dataset.tab; APP.techOpen=true; render(); }
+  else if(action==="verify-opportunity"){ showToast("Always verify opportunities directly with the organisation through an official channel."); }
+  else if(action==="report-tp"){ showToast("Reported to T&P Cell. Thank you for flagging this."); }
+  else if(action==="mark-safe"){ showToast("Marked as reviewed."); }
+  else if(action==="view-related"){ APP.currentCampaignId = el.dataset.campaign; APP.screen="graph"; render(); }
+  else if(action==="back-email"){ APP.screen="email-detail"; render(); }
+  else if(action==="subnav-student"){
+    const key = el.dataset.key;
+    if(key==="inbox"){ APP.inboxFilter="all"; APP.screen="inbox"; }
+    else if(key==="attention"){ APP.inboxFilter="attention"; APP.screen="inbox"; }
+    else if(key==="scan"){ APP.screen="scanning"; }
+    else if(key==="reports"){ APP.screen="reports"; }
+    render();
+  } else if(action==="subnav-inst"){
+    const key = el.dataset.key;
+    if(key==="overview") APP.screen="inst-overview";
+    else if(key==="campaigns") APP.screen="inst-campaigns";
+    else if(key==="students") APP.screen="inst-students";
+    else if(key==="investigations") APP.screen="inst-investigations";
+    render();
+  } else if(action==="open-campaign"){ APP.currentCampaignId = el.dataset.id; APP.activeTab="overview"; APP.screen="campaign-detail"; render(); }
+  else if(action==="campaign-tab"){ APP.activeTab = el.dataset.tab; render(); }
+  else if(action==="notify-students"){
+    const id = el.dataset.id; APP.notified.add(id);
+    const c = allCampaigns().find(x=>x.id===id);
+    showToast("Notification sent to "+(c?c.studentsAffected:"")+" students.");
+    render();
+  } else if(action==="export-report"){ exportIncidentReport(el.dataset.id); }
+});
+
+document.getElementById("navSwitch").addEventListener("click",(ev)=>{
+  const btn = ev.target.closest(".mode-btn"); if(!btn) return;
+  APP.nav = btn.dataset.nav;
+  APP.screen = APP.nav==="student" ? (APP.scanned?"inbox":"landing") : "inst-overview";
+  render();
+});
+
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  APP.screen="landing"; APP.nav="student"; APP.provider=null; APP.scanned=false; APP.inboxFilter="all";
+  APP.currentEmailId=null; APP.currentCampaignId=null; APP.notified=new Set(); APP.activeTab="auth"; APP.lastScanTime=null;
+  render();
+  showToast("Demo reset.");
+});
+
+render();
+</script>
+</body>
+</html>
