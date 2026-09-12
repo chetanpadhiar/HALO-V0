@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: halo-ml-backend
+    runtime: python
+    plan: free
+    rootDir: halo_ml/service
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ALLOWED_ORIGINS
+        sync: false          # set to your Vercel origin(s), comma-separated
+      - key: GOOGLE_OAUTH_CLIENT_ID
+        sync: false
+      - key: GOOGLE_OAUTH_CLIENT_SECRET
+        sync: false
+      - key: MICROSOFT_OAUTH_CLIENT_ID
+        sync: false
+      - key: MICROSOFT_OAUTH_CLIENT_SECRET
+        sync: false
+      - key: MICROSOFT_OAUTH_TENANT
+        value: common
+    # PORT is injected automatically by Render -- do not set it manually.

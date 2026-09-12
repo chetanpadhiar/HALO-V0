@@ -1,0 +1,181 @@
+{
+  "model_name": "HALO-Trust-RF-v3",
+  "model_type": "RandomForestClassifier (scikit-learn), 400 trees, class_weight=balanced",
+  "feature_set": "structured-only, 21 features -- excludes subject_len/body_len/body_len_log/subject_has_exclaim/subject_is_reply_or_fwd (proven corpus-genre artifacts, see history)",
+  "features": [
+    "url_count",
+    "attachment_count",
+    "has_credential_request",
+    "has_otp_request",
+    "has_payment_request",
+    "has_urgency",
+    "html_present",
+    "script_present",
+    "auth_headers_present",
+    "from_missing",
+    "reply_to_present",
+    "reply_to_mismatch",
+    "from_local_has_digits",
+    "urgency_word_hits",
+    "credential_word_hits",
+    "payment_word_hits",
+    "url_extracted_count",
+    "url_ip_based_count",
+    "url_punycode_count",
+    "url_domain_mismatch_count",
+    "url_subdomain_heavy_count"
+  ],
+  "feature_importances": [
+    {
+      "feature": "html_present",
+      "importance": 0.6128
+    },
+    {
+      "feature": "url_domain_mismatch_count",
+      "importance": 0.0606
+    },
+    {
+      "feature": "reply_to_present",
+      "importance": 0.0554
+    },
+    {
+      "feature": "from_missing",
+      "importance": 0.0538
+    },
+    {
+      "feature": "from_local_has_digits",
+      "importance": 0.0493
+    },
+    {
+      "feature": "url_count",
+      "importance": 0.0344
+    },
+    {
+      "feature": "has_payment_request",
+      "importance": 0.0317
+    },
+    {
+      "feature": "url_extracted_count",
+      "importance": 0.0297
+    },
+    {
+      "feature": "reply_to_mismatch",
+      "importance": 0.0191
+    },
+    {
+      "feature": "attachment_count",
+      "importance": 0.0143
+    },
+    {
+      "feature": "credential_word_hits",
+      "importance": 0.008
+    },
+    {
+      "feature": "payment_word_hits",
+      "importance": 0.0068
+    },
+    {
+      "feature": "url_subdomain_heavy_count",
+      "importance": 0.0059
+    },
+    {
+      "feature": "urgency_word_hits",
+      "importance": 0.005
+    },
+    {
+      "feature": "url_ip_based_count",
+      "importance": 0.0047
+    },
+    {
+      "feature": "has_credential_request",
+      "importance": 0.0045
+    },
+    {
+      "feature": "has_urgency",
+      "importance": 0.0026
+    },
+    {
+      "feature": "script_present",
+      "importance": 0.0009
+    },
+    {
+      "feature": "auth_headers_present",
+      "importance": 0.0003
+    },
+    {
+      "feature": "has_otp_request",
+      "importance": 0.0
+    },
+    {
+      "feature": "url_punycode_count",
+      "importance": 0.0
+    }
+  ],
+  "decision_threshold": 0.4123779492781404,
+  "threshold_selection_method": "max balanced accuracy on validation subject to malicious recall >= 0.85, chosen on validation only",
+  "training_date": "2026-09-12",
+  "dataset": {
+    "epvme_rows": 37036,
+    "spamassassin_legitimate_rows": 2501,
+    "combined_rows": 39537,
+    "near_duplicate_template_groups": 20011,
+    "split_method": "GroupShuffleSplit on template-normalized near-duplicate groups, 70/15/15 by group, seed=42",
+    "split_sizes": {
+      "train": 30518,
+      "val": 4330,
+      "test": 4689
+    }
+  },
+  "majority_class_baseline_test": {
+    "majority_class": "malicious",
+    "accuracy": 0.9255704841117509,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4806733857570052
+  },
+  "final_test_metrics": {
+    "threshold": 0.4123779492781404,
+    "n": 4689,
+    "accuracy": 0.8820644060567285,
+    "balanced_accuracy": 0.9020364306180926,
+    "mcc": 0.5478156859724402,
+    "roc_auc": 0.9550512986412794,
+    "pr_auc": 0.9951835029862675,
+    "macro_f1": 0.7355850705355087,
+    "weighted_f1": 0.9030919553679408,
+    "legitimate": {
+      "precision": 0.38,
+      "recall": 0.9255014326647565,
+      "f1": 0.5387823185988324,
+      "support": 349
+    },
+    "malicious": {
+      "precision": 0.9932274029695233,
+      "recall": 0.8785714285714286,
+      "f1": 0.9323878224721849,
+      "support": 4340
+    },
+    "specificity_legitimate_recall": 0.9255014326647565,
+    "fpr": 0.07449856733524356,
+    "fnr": 0.12142857142857143,
+    "confusion_matrix": {
+      "tn": 323,
+      "fp": 26,
+      "fn": 527,
+      "tp": 3813
+    }
+  },
+  "model_history": [
+    "v1 (moderate features incl. length): 88.4% test accuracy, later found BELOW the 93.6% majority-class baseline on raw accuracy -- raw accuracy alone was the wrong metric to optimize for.",
+    "v2/v3-ablation (text & hybrid TF-IDF): ~99% validation balanced accuracy, REJECTED -- source_dataset and label are 100% confounded (every legitimate row is SpamAssassin, every malicious row is EPVME), and coefficient inspection after two rounds of corpus-jargon removal still found literal corpus fingerprints ('zzzzteana', 'satalk' -- SpamAssassin mailing-list names). Not shippable regardless of further text cleaning.",
+    "v3-structured (this family, first pass, all 25 structured features): 91.9% balanced accuracy on test, but test_routine_email_does_not_score_extreme caught a genuinely benign short email scoring P(malicious)=0.91, driven entirely by subject_len/body_len -- another corpus-genre artifact (EPVME's malicious set skews short/templated; SpamAssassin ham skews long/quoted).",
+    "v3-no-html (diagnostic only): removing html_present entirely collapsed balanced accuracy to 0.67 (FPR 53.7%) -- confirms html_present carries substantial real signal despite its corpus confound, so it is kept (with the caveat below), while length features were dropped.",
+    "v3/FINAL (this artifact): length/stylistic features removed, html_present retained. Passes the regression check for the specific false positive found above."
+  ],
+  "known_limitations": [
+    "html_present is the largest remaining feature and is still confounded with source corpus (72.5% of EPVME vs 0.3% of SpamAssassin ham) -- MUST be revalidated against real legitimate HTML campus email (LMS notices, official announcements, which are commonly HTML in 2026) before production use, since it may currently over-penalize legitimate HTML mail.",
+    "Text/hybrid (TF-IDF) models were explicitly rejected due to the source/label confound described above, not shipped even though they scored higher. Revalidating text models requires new data where legitimate and malicious examples come from the SAME contemporary source, breaking the corpus/label aliasing.",
+    "Legitimate-class precision is modest at the chosen operating point (see final_test_metrics) -- a direct, disclosed consequence of the ~93:7 malicious:legitimate imbalance in this test split, not a hidden flaw. HALO's 3-tier bucket (safe/attention/high-risk) is relied on to soften the cost of borderline false positives rather than a binary safe/unsafe verdict.",
+    "This dataset gives only two structured proxies for authentication (authentication_headers_present as a bare boolean; no granular SPF/DKIM/DMARC per row) -- weaker than the header-parsing identity signal already implemented in the frontend prototype's simulated demo data.",
+    "Recommended before production: collect real/realistic campus email for both classes from a shared contemporary source, to de-alias corpus identity from label, then re-run train_v3.py's full ablation -- at that point text signal becomes trustworthy to evaluate for shipping."
+  ]
+}
