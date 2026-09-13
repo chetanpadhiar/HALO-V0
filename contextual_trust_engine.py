@@ -30,7 +30,8 @@ from features import extract_structured_features
 import infrastructure_intel
 import behavioral_baseline
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "halo_trust_model_v3.joblib")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "halo_trust_model_v3.joblib")
 _artifact = joblib.load(MODEL_PATH)
 ML_MODEL = _artifact["model"]
 ML_FEATURES = _artifact["features"]

@@ -3,7 +3,6 @@ services:
     name: halo-ml-backend
     runtime: python
     plan: free
-    rootDir: halo_ml/service
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     healthCheckPath: /health

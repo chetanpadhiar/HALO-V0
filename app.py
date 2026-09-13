@@ -32,7 +32,8 @@ import sys
 import os
 import json
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
 
 from flask import Flask, request, jsonify
 
@@ -41,7 +42,7 @@ import campaign_correlation
 import behavioral_baseline
 import auth as halo_auth
 
-META_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "halo_trust_model_v3.metadata.json")
+META_PATH = os.path.join(BASE_DIR, "halo_trust_model_v3.metadata.json")
 with open(META_PATH) as f:
     METADATA = json.load(f)
 

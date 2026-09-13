@@ -7,8 +7,7 @@ import sys
 import os
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "service"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import joblib
 import numpy as np
@@ -16,7 +15,7 @@ import numpy as np
 from features import extract_structured_features, extract_text, STRUCTURED_FEATURE_NAMES
 from text_clean import clean_for_text_model
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "models", "halo_trust_model_v3.joblib")
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "halo_trust_model_v3.joblib")
 
 
 class FeatureExtractionTests(unittest.TestCase):

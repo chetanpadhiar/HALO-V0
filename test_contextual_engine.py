@@ -11,8 +11,7 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "service"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import contextual_trust_engine as engine
 import campaign_correlation
